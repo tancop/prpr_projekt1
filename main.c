@@ -1,13 +1,8 @@
 #include <stddef.h>
 #include <stdio.h>
 
-// program po spustení čaká na nový príkaz
-#define RV_CONTINUE (0)
-// program po spustení príkazu skončí
-#define RV_END (1)
-
-int v1(FILE **restrict f_data, FILE **restrict f_string,
-       FILE **restrict f_parse)
+void v1(FILE **restrict f_data, FILE **restrict f_string,
+        FILE **restrict f_parse)
 {
     if (!*f_data)
     {
@@ -16,7 +11,7 @@ int v1(FILE **restrict f_data, FILE **restrict f_string,
         {
             // nepodarilo sa otvoriť súbor
             printf("V1: Neotvorene txt subory.\n");
-            return RV_CONTINUE;
+            return;
         }
     }
     if (!*f_string)
@@ -25,7 +20,7 @@ int v1(FILE **restrict f_data, FILE **restrict f_string,
         if (!*f_string)
         {
             printf("V1: Neotvorene txt subory.\n");
-            return RV_CONTINUE;
+            return;
         }
     }
     if (!*f_parse)
@@ -34,7 +29,7 @@ int v1(FILE **restrict f_data, FILE **restrict f_string,
         if (!*f_parse)
         {
             printf("V1: Neotvorene txt subory.\n");
-            return RV_CONTINUE;
+            return;
         }
     }
 
@@ -74,10 +69,10 @@ int v1(FILE **restrict f_data, FILE **restrict f_string,
         // koniec riadku s poznámkou a prázdny riadok
         printf("\n\n");
     }
-    return RV_CONTINUE;
 }
 
-int v(FILE **restrict f_data, FILE **restrict f_string, FILE **restrict f_parse)
+void v(FILE **restrict f_data, FILE **restrict f_string,
+       FILE **restrict f_parse)
 {
     char subcmd;
 
@@ -89,17 +84,16 @@ int v(FILE **restrict f_data, FILE **restrict f_string, FILE **restrict f_parse)
         return v1(f_data, f_string, f_parse);
     default:
         printf("V: Nesprávne volba vypisu.\n");
-        return RV_CONTINUE;
     }
 }
 
-int h(FILE *f_string)
+void h(FILE *f_string)
 {
     if (!f_string)
     {
         // f_string je nulová adresa - neukazuje na súbor
         printf("H: Neotvoreny subor.\n");
-        return RV_CONTINUE;
+        return;
     }
 
     // vrátime indikátor na začiatok
@@ -137,15 +131,13 @@ int h(FILE *f_string)
         if (freq > 0)
             printf("%c : %d\n", index_to_char[i], freq);
     }
-
-    return RV_END;
 }
 
 int main()
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
     char cmd;
-    int cmd_return;
+    int should_end = 0;
 
     do
     {
@@ -154,15 +146,16 @@ int main()
         switch (cmd)
         {
         case 'v':
-            cmd_return = v(&f_data, &f_string, &f_parse);
+            v(&f_data, &f_string, &f_parse);
             break;
         case 'h':
-            cmd_return = h(f_string);
+            h(f_string);
             break;
         default:
-            cmd_return = RV_END;
+            should_end = 1;
+            break;
         }
-    } while (cmd_return == RV_CONTINUE);
+    } while (!should_end);
 
     return 0;
 }
