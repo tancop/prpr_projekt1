@@ -6,7 +6,7 @@
 // program po spustení príkazu skončí
 #define RV_END (1)
 
-int v1(FILE *f_data, FILE *f_string, FILE *f_parse)
+int v1(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse)
 {
     if (!f_data)
     {
@@ -43,7 +43,8 @@ int v1(FILE *f_data, FILE *f_string, FILE *f_parse)
     {
         if (id_string[0] == '\n')
         {
-            printf("ID. mer. modulu: <empty>\n");
+            // prázdny riadok v string.txt
+            printf("ID. mer. modulu:\n");
         }
         else
         {
@@ -75,7 +76,7 @@ int v1(FILE *f_data, FILE *f_string, FILE *f_parse)
     return RV_END;
 }
 
-int v(FILE *f_data, FILE *f_string, FILE *f_parse)
+int v(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse)
 {
     char subcmd;
 
