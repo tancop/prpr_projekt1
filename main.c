@@ -51,6 +51,26 @@ int v1(FILE *f_data, FILE *f_string, FILE *f_parse)
             // posunieme indikátor na začiatok ďalšieho riadku
             fseek(f_string, 1, SEEK_CUR);
         }
+
+        int h1;
+        double h2;
+
+        // zahodíme prvé dve čísla cez %*
+        fscanf(f_data, "%*d %*d %d %lf", &h1, &h2);
+        printf("Hodnota 1: %d\nHodnota 2: %lg\n", h1, h2);
+
+        printf("Poznámka: ");
+
+        int c;
+
+        // vypisujeme znaky z parse.txt do konca riadku
+        while ((c = fgetc(f_parse)) != '\n')
+        {
+            putchar(c);
+        }
+
+        // koniec riadku s poznámkou a prázdny riadok
+        printf("\n\n");
     }
     return RV_END;
 }
