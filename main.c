@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-// program po spustení čaká na ďalší príkaz
+// program po spustení čaká na nový príkaz
 #define RV_CONTINUE (0)
 // program po spustení príkazu skončí
 #define RV_END (1)
@@ -37,6 +37,21 @@ int v1(FILE *f_data, FILE *f_string, FILE *f_parse)
         }
     }
 
+    char id_string[6];
+
+    while (fgets(id_string, 7, f_string))
+    {
+        if (id_string[0] == '\n')
+        {
+            printf("ID. mer. modulu: <empty>\n");
+        }
+        else
+        {
+            printf("ID. mer. modulu: %s\n", id_string);
+            // posunieme indikátor na začiatok ďalšieho riadku
+            fseek(f_string, 1, SEEK_CUR);
+        }
+    }
     return RV_END;
 }
 
