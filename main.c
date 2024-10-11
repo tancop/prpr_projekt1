@@ -102,7 +102,41 @@ int h(FILE *f_string)
         return RV_CONTINUE;
     }
 
-    printf("todo h\n");
+    // vrátime indikátor na začiatok
+    rewind(f_string);
+
+    const char *index_to_char =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    // malé + veľké + číslice
+    int hist[26 + 26 + 10] = {0};
+    int c;
+
+    while ((c = fgetc(f_string)) != EOF)
+    {
+        if (c >= '0' && c <= '9')
+        {
+            // číslica
+            hist[(c - '0') + 52]++;
+        }
+        else if (c >= 'A' && c <= 'Z')
+        {
+            // veľké písmeno
+            hist[(c - 'A')]++;
+        }
+        else if (c >= 'a' && c <= 'z')
+        {
+            // malé písmeno
+            hist[(c - 'a') + 26]++;
+        }
+    }
+
+    for (int i = 0; i < (26 + 26 + 10); i++)
+    {
+        int freq = hist[i];
+        if (freq > 0)
+            printf("%c : %d\n", index_to_char[i], freq);
+    }
 
     return RV_END;
 }
