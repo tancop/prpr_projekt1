@@ -33,6 +33,10 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
         }
     }
 
+    rewind(*f_data);
+    rewind(*f_string);
+    rewind(*f_parse);
+
     char id_string[6];
 
     while (fgets(id_string, 7, *f_string))
