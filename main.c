@@ -33,6 +33,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
         }
     }
 
+    // vrátime sa na začiatok súborov
     rewind(*f_data);
     rewind(*f_string);
     rewind(*f_parse);
@@ -108,7 +109,8 @@ void h(FILE *f_string)
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     // malé + veľké + číslice
-    int hist[26 + 26 + 10] = {0};
+#define hist_length (26 + 26 + 10)
+    int hist[hist_length] = {0};
     int c;
 
     while ((c = fgetc(f_string)) != EOF)
@@ -130,10 +132,11 @@ void h(FILE *f_string)
         }
     }
 
-    for (int i = 0; i < (26 + 26 + 10); i++)
+    for (int i = 0; i < hist_length; i++)
     {
         int freq = hist[i];
         if (freq > 0)
+            // znak sa nachádza v súbore
             printf("%c : %d\n", index_to_char[i], freq);
     }
 }
@@ -146,6 +149,7 @@ int main()
 
     do
     {
+        // nechceme načítať \n pred znakom
         scanf(" %c", &cmd);
 
         switch (cmd)
