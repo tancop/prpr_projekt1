@@ -37,6 +37,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
     rewind(*f_string);
     rewind(*f_parse);
 
+    // riadok v string.txt má max 6 znakov + \n
     char id_string[6];
 
     while (fgets(id_string, 7, *f_string))
@@ -156,10 +157,19 @@ int main()
             h(f_string);
             break;
         default:
+            // príkaz nie je podporovaný
             should_end = 1;
             break;
         }
     } while (!should_end);
+
+    // zatvoríme všetky súbory ak sú otvorené
+    if (f_data)
+        fclose(f_data);
+    if (f_string)
+        fclose(f_string);
+    if (f_parse)
+        fclose(f_parse);
 
     return 0;
 }
