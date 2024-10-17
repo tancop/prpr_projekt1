@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void v1(FILE **restrict f_data, FILE **restrict f_string,
         FILE **restrict f_parse)
@@ -141,9 +142,165 @@ void h(FILE *f_string)
     }
 }
 
+void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
+       int **restrict a_data, double **restrict a_data4,
+       char **restrict a_string, char **restrict a_parse,
+       int **restrict a_parse_lengths, int *restrict s_data,
+       int *restrict s_string, int *restrict s_parse)
+{
+    if (!f_data || !f_string || !f_parse)
+    {
+        printf("N: Neotvoreny subor.\n");
+        return;
+    }
+
+    rewind(f_data);
+    rewind(f_string);
+    rewind(f_parse);
+
+    if (*a_data)
+    {
+        // uz bolo vytvorene
+        free(*a_data);
+        *s_data = 0;
+    }
+    if (*a_data4)
+    {
+        free(*a_data4);
+    }
+    if (*a_string)
+    {
+        free(*a_string);
+        *s_string = 0;
+    }
+    if (*a_parse)
+    {
+        free(*a_parse);
+        *s_parse = 0;
+    }
+    if (*a_parse_lengths)
+    {
+        free(*a_parse_lengths);
+    }
+
+    int c;
+    // spocitame riadky v data.txt
+    while ((c = fgetc(f_data)) != EOF)
+    {
+        if (c == '\n')
+        {
+            ++(*s_data);
+        }
+    }
+    rewind(f_data);
+    while ((c = fgetc(f_string)) != EOF)
+    {
+        if (c == '\n')
+        {
+            ++(*s_string);
+        }
+    }
+    rewind(f_string);
+    while ((c = fgetc(f_parse)) != EOF)
+    {
+        if (c == '\n')
+        {
+            ++(*s_parse);
+        }
+    }
+    rewind(f_parse);
+
+    printf("riadky: data %d, string %d, parse %d\n", *s_data, *s_string,
+           *s_parse);
+    // vyberieme najvacsiu dlzku pola
+    int size = *s_data;
+    if (*s_string > size)
+        size = *s_string;
+    if (*s_parse > size)
+        size = *s_parse;
+
+    // kazdy zaznam v data.txt ma 3 inty
+    *a_data = (int *)malloc(*s_data * (3 * sizeof(int)));
+    // a 1 double
+    *a_data4 = (double *)malloc(*s_data * sizeof(double));
+
+    for (int i = 0; i < *s_data; ++i)
+    {
+        fscanf(f_data, "%d %d %d %lf", &(*a_data)[3 * i], &(*a_data)[3 * i + 1],
+               &(*a_data)[3 * i + 2], &(*a_data4)[i]);
+    }
+
+    *a_string = (char *)malloc(*s_string * 6);
+    int base = 0, offset = 0;
+
+    // pouzijeme uz deklarovany int c
+    while ((c = fgetc(f_string)) != EOF)
+    {
+        if (c == '\n')
+        {
+            // posunieme na dalsi char[6]
+            ++base;
+            offset = 0;
+        }
+        else
+        {
+            // zapiseme znak do pola
+            (*a_string)[base * 6 + offset] = c;
+            ++offset;
+        }
+    }
+
+    *a_parse_lengths = (int *)malloc(*s_parse * sizeof(int));
+
+    // pozicia v subore parse.txt
+    int f_pos = 0;
+    int prev_f_pos = 0;
+    // index v poli a_parse_lengths
+    int pl_pos = 0;
+
+    // dlzka celeho pola a_parse
+    int total_length = 0;
+
+    while ((c = fgetc(f_parse)) != EOF)
+    {
+        if (c == '\n')
+        {
+            (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos;
+            prev_f_pos = f_pos;
+            f_pos = 0;
+            ++pl_pos;
+        }
+        ++f_pos;
+        ++total_length;
+    }
+
+    rewind(f_parse);
+
+    *a_parse = (char *)malloc(total_length);
+
+    for (int i; i < total_length; ++i)
+    {
+        if ((c = fgetc(f_parse)) == '\n')
+        {
+            // nacitame prvy znak z dalsieho riadku
+            c = fgetc(f_parse);
+        }
+        (*a_parse)[i] = c;
+    }
+}
+
 int main()
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
+    int *a_data = NULL;     // int[]
+    int s_data = 0;         // velkost a_data
+    double *a_data4 = NULL; // posledne casti zaznamu
+    char *a_string = NULL;  // char[]
+    int s_string = 0;
+    char *a_parse = NULL;        // char[]
+    int *a_parse_lengths = NULL; // dlzky retazcov v a_parse
+    int s_parse = 0;
+
     char cmd;
     int should_end = 0;
 
@@ -159,6 +316,10 @@ int main()
             break;
         case 'h':
             h(f_string);
+            break;
+        case 'n':
+            n(f_data, f_string, f_parse, &a_data, &a_data4, &a_string, &a_parse,
+              &a_parse_lengths, &s_data, &s_string, &s_parse);
             break;
         default:
             // príkaz nie je podporovaný
