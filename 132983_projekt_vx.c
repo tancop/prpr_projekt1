@@ -81,6 +81,14 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
     }
 }
 
+void v2(int *restrict a_data, int s_data, double *restrict a_data4,
+        char *restrict a_string, int s_string, char *restrict a_parse,
+        int s_parse, int *restrict a_parse_lengths, int *restrict a_deleted,
+        int s_deleted)
+{
+    return;
+}
+
 void v(FILE **restrict f_data, FILE **restrict f_string,
        FILE **restrict f_parse)
 {
@@ -146,9 +154,8 @@ void h(FILE *f_string)
 }
 
 void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
-       int **restrict a_data, int *restrict s_data, double **restrict a_data4,
-       char **restrict a_string, int *restrict s_string,
-       char **restrict a_parse, int *restrict s_parse,
+       int *rec_count, int **restrict a_data, double **restrict a_data4,
+       char **restrict a_string, char **restrict a_parse,
        int **restrict a_parse_lengths, int **restrict a_deleted,
        int *restrict s_deleted)
 {
@@ -162,11 +169,11 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     rewind(f_string);
     rewind(f_parse);
 
+    *rec_count = 0;
     if (*a_data)
     {
         // uz bolo vytvorene
         free(*a_data);
-        *s_data = 0;
     }
     if (*a_data4)
     {
@@ -175,12 +182,10 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     if (*a_string)
     {
         free(*a_string);
-        *s_string = 0;
     }
     if (*a_parse)
     {
         free(*a_parse);
-        *s_parse = 0;
     }
     if (*a_parse_lengths)
     {
@@ -192,13 +197,14 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
         *s_deleted = 0;
     }
 
+    int s_data = 0, s_string = 0, s_parse = 0;
     int c;
     // spocitame riadky v data.txt
     while ((c = fgetc(f_data)) != EOF)
     {
         if (c == '\n')
         {
-            ++(*s_data);
+            ++s_data;
         }
     }
     rewind(f_data);
@@ -206,7 +212,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     {
         if (c == '\n')
         {
-            ++(*s_string);
+            ++s_string;
         }
     }
     rewind(f_string);
@@ -214,32 +220,33 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     {
         if (c == '\n')
         {
-            ++(*s_parse);
+            ++s_parse;
         }
     }
     rewind(f_parse);
 
-    printf("riadky: data %d, string %d, parse %d\n", *s_data, *s_string,
-           *s_parse);
     // vyberieme najvacsiu dlzku pola
-    int size = *s_data;
-    if (*s_string > size)
-        size = *s_string;
-    if (*s_parse > size)
-        size = *s_parse;
+    int size = s_data;
+    if (s_string > size)
+        size = s_string;
+    if (s_parse > size)
+        size = s_parse;
+
+    // nastavime vsetky dlzky na size
+    *rec_count = size;
 
     // kazdy zaznam v data.txt ma 3 inty
-    *a_data = (int *)malloc(*s_data * (3 * sizeof(int)));
+    *a_data = (int *)malloc(*rec_count * (3 * sizeof(int)));
     // a 1 double
-    *a_data4 = (double *)malloc(*s_data * sizeof(double));
+    *a_data4 = (double *)malloc(*rec_count * sizeof(double));
 
-    for (int i = 0; i < *s_data; ++i)
+    for (int i = 0; i < *rec_count; ++i)
     {
         fscanf(f_data, "%d %d %d %lf", &(*a_data)[3 * i], &(*a_data)[3 * i + 1],
                &(*a_data)[3 * i + 2], &(*a_data4)[i]);
     }
 
-    *a_string = (char *)malloc(*s_string * 6);
+    *a_string = (char *)malloc(*rec_count * 6);
     int base = 0, offset = 0;
 
     // pouzijeme uz deklarovany int c
@@ -259,7 +266,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
         }
     }
 
-    *a_parse_lengths = (int *)malloc(*s_parse * sizeof(int));
+    *a_parse_lengths = (int *)malloc(*rec_count * sizeof(int));
 
     // pozicia v subore parse.txt
     int f_pos = 0;
@@ -302,15 +309,14 @@ int main()
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
     int *a_data = NULL;          // prve 3 cisla zaznamu v data.txt
-    int s_data = 0;              // velkost a_data
     double *a_data4 = NULL;      // posledne cislo zaznamu
     char *a_string = NULL;       // zaznam v string.txt
-    int s_string = 0;            // velkost a_string
     char *a_parse = NULL;        // zaznam v parse.txt
     int *a_parse_lengths = NULL; // dlzky retazcov v a_parse
-    int s_parse = 0;             // pocet zaznamov v a_parse
     int *a_deleted = NULL;       // vymazane zaznamy na recyklaciu
     int s_deleted = 0;           // velkost s_deleted
+
+    int rec_count = 0; // max pocet zaznamov v dynamickych poliach
 
     char cmd;
     int should_end = false;
@@ -329,9 +335,8 @@ int main()
             h(f_string);
             break;
         case 'n':
-            n(f_data, f_string, f_parse, &a_data, &s_data, &a_data4, &a_string,
-              &s_string, &a_parse, &s_parse, &a_parse_lengths, &a_deleted,
-              &s_deleted);
+            n(f_data, f_string, f_parse, &rec_count, &a_data, &a_data4,
+              &a_string, &a_parse, &a_parse_lengths, &a_deleted, &s_deleted);
             break;
         default:
             // príkaz nie je podporovaný
