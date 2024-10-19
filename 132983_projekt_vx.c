@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define false (0)
+#define true (1)
+
 void v1(FILE **restrict f_data, FILE **restrict f_string,
         FILE **restrict f_parse)
 {
@@ -310,7 +313,7 @@ int main()
     int s_deleted = 0;           // velkost s_deleted
 
     char cmd;
-    int should_end = 0;
+    int should_end = false;
 
     do
     {
@@ -332,7 +335,7 @@ int main()
             break;
         default:
             // príkaz nie je podporovaný
-            should_end = 1;
+            should_end = true;
             break;
         }
     } while (!should_end);
