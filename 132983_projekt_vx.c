@@ -143,10 +143,11 @@ void h(FILE *f_string)
 }
 
 void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
-       int **restrict a_data, double **restrict a_data4,
-       char **restrict a_string, char **restrict a_parse,
-       int **restrict a_parse_lengths, int *restrict s_data,
-       int *restrict s_string, int *restrict s_parse)
+       int **restrict a_data, int *restrict s_data, double **restrict a_data4,
+       char **restrict a_string, int *restrict s_string,
+       char **restrict a_parse, int *restrict s_parse,
+       int **restrict a_parse_lengths, int **restrict a_deleted,
+       int *restrict s_deleted)
 {
     if (!f_data || !f_string || !f_parse)
     {
@@ -181,6 +182,11 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     if (*a_parse_lengths)
     {
         free(*a_parse_lengths);
+    }
+    if (*a_deleted)
+    {
+        free(*a_deleted);
+        *s_deleted = 0;
     }
 
     int c;
@@ -292,14 +298,16 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
 int main()
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
-    int *a_data = NULL;     // int[]
-    int s_data = 0;         // velkost a_data
-    double *a_data4 = NULL; // posledne casti zaznamu
-    char *a_string = NULL;  // char[]
-    int s_string = 0;
-    char *a_parse = NULL;        // char[]
+    int *a_data = NULL;          // prve 3 cisla zaznamu v data.txt
+    int s_data = 0;              // velkost a_data
+    double *a_data4 = NULL;      // posledne cislo zaznamu
+    char *a_string = NULL;       // zaznam v string.txt
+    int s_string = 0;            // velkost a_string
+    char *a_parse = NULL;        // zaznam v parse.txt
     int *a_parse_lengths = NULL; // dlzky retazcov v a_parse
-    int s_parse = 0;
+    int s_parse = 0;             // pocet zaznamov v a_parse
+    int *a_deleted = NULL;       // vymazane zaznamy na recyklaciu
+    int s_deleted = 0;           // velkost s_deleted
 
     char cmd;
     int should_end = 0;
@@ -318,8 +326,9 @@ int main()
             h(f_string);
             break;
         case 'n':
-            n(f_data, f_string, f_parse, &a_data, &a_data4, &a_string, &a_parse,
-              &a_parse_lengths, &s_data, &s_string, &s_parse);
+            n(f_data, f_string, f_parse, &a_data, &s_data, &a_data4, &a_string,
+              &s_string, &a_parse, &s_parse, &a_parse_lengths, &a_deleted,
+              &s_deleted);
             break;
         default:
             // príkaz nie je podporovaný
@@ -335,6 +344,20 @@ int main()
         fclose(f_string);
     if (f_parse)
         fclose(f_parse);
+
+    // uvolnime dynamicke polia
+    if (a_data)
+        free(a_data);
+    if (a_data4)
+        free(a_data4);
+    if (a_string)
+        free(a_string);
+    if (a_parse)
+        free(a_parse);
+    if (a_parse_lengths)
+        free(a_parse_lengths);
+    if (a_deleted)
+        free(a_deleted);
 
     return 0;
 }
