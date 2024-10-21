@@ -81,11 +81,25 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
     }
 }
 
-void v2(int *restrict a_data, int s_data, double *restrict a_data4,
-        char *restrict a_string, int s_string, char *restrict a_parse,
-        int s_parse, int *restrict a_parse_lengths, int *restrict a_deleted,
-        int s_deleted)
+void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
+        char *restrict a_string, char *restrict a_parse,
+        int *restrict a_parse_lengths, int *restrict a_deleted, int s_deleted)
 {
+    for (int i = 0; i < rec_count; ++i)
+    {
+        int is_deleted = false;
+        for (int j = 0; j < s_deleted; ++j)
+        {
+            if (a_deleted[j] == i)
+            {
+                // zaznam sme uz vymazali
+                is_deleted = true;
+                break;
+            }
+        }
+        if (is_deleted)
+            continue;
+    }
     return;
 }
 
