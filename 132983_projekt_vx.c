@@ -43,7 +43,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
     rewind(*f_parse);
 
     // riadok v string.txt má max 6 znakov + \n
-    char id_string[6];
+    char id_string[7];
 
     while (fgets(id_string, 7, *f_string))
     {
@@ -292,9 +292,8 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     {
         if (c == '\n')
         {
-            *a_parse_lengths[pl_pos] = f_pos - prev_f_pos;
+            (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos;
             prev_f_pos = f_pos;
-            f_pos = 0;
             ++pl_pos;
         }
         ++f_pos;
@@ -302,24 +301,33 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
 
     rewind(f_parse);
 
-    *a_parse = (char **)malloc(s_parse);
+    *a_parse = (char **)malloc(*rec_count * sizeof(char *));
 
     // poloha v poli a_parse
     int p_pos = 0;
     // poloha v riadku parse.txt
     int l_pos = 0;
 
+    (*a_parse)[0] = (char *)malloc((*a_parse_lengths)[0] * sizeof(char));
     // nacitame obsah parse.txt do a_parse
-    while ((c = fgetc(f_parse)) == EOF)
+    while ((c = fgetc(f_parse)) != EOF)
     {
         if (c == '\n')
         {
             ++p_pos;
+            if (p_pos >= *rec_count)
+                // subor konci znakom '\n', nepotrebujeme za tym dalsi riadok
+                break;
+            // alokujeme vnutorne pole
+            (*a_parse)[p_pos] =
+                (char *)malloc((*a_parse_lengths)[p_pos] * sizeof(char));
             l_pos = 0;
-            // nacitame prvy znak z dalsieho riadku
-            c = fgetc(f_parse);
         }
-        (*a_parse)[p_pos][l_pos] = c;
+        else
+        {
+            (*a_parse)[p_pos][l_pos] = c;
+        }
+        ++l_pos;
     }
 }
 
@@ -382,7 +390,8 @@ int main()
     {
         for (int i = 0; i < rec_count; ++i)
         {
-            free(a_parse[i]);
+            if (a_parse[i])
+                free(a_parse[i]);
         }
         free(a_parse);
     }
