@@ -82,7 +82,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
 }
 
 void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
-        char *restrict a_string, char *restrict a_parse,
+        char *restrict a_string, char **restrict a_parse,
         int *restrict a_parse_lengths, int *restrict a_deleted, int s_deleted)
 {
     for (int i = 0; i < rec_count; ++i)
@@ -169,7 +169,7 @@ void h(FILE *f_string)
 
 void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
        int *rec_count, int **restrict a_data, double **restrict a_data4,
-       char **restrict a_string, char **restrict a_parse,
+       char **restrict a_string, char ***restrict a_parse,
        int **restrict a_parse_lengths, int **restrict a_deleted,
        int *restrict s_deleted)
 {
@@ -288,34 +288,38 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     // index v poli a_parse_lengths
     int pl_pos = 0;
 
-    // dlzka celeho pola a_parse
-    int total_length = 0;
-
     while ((c = fgetc(f_parse)) != EOF)
     {
         if (c == '\n')
         {
-            (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos;
+            *a_parse_lengths[pl_pos] = f_pos - prev_f_pos;
             prev_f_pos = f_pos;
             f_pos = 0;
             ++pl_pos;
         }
         ++f_pos;
-        ++total_length;
     }
 
     rewind(f_parse);
 
-    *a_parse = (char *)malloc(total_length);
+    *a_parse = (char **)malloc(s_parse);
 
-    for (int i; i < total_length; ++i)
+    // poloha v poli a_parse
+    int p_pos = 0;
+    // poloha v riadku parse.txt
+    int l_pos = 0;
+
+    // nacitame obsah parse.txt do a_parse
+    while ((c = fgetc(f_parse)) == EOF)
     {
-        if ((c = fgetc(f_parse)) == '\n')
+        if (c == '\n')
         {
+            ++p_pos;
+            l_pos = 0;
             // nacitame prvy znak z dalsieho riadku
             c = fgetc(f_parse);
         }
-        (*a_parse)[i] = c;
+        (*a_parse)[p_pos][l_pos] = c;
     }
 }
 
@@ -325,8 +329,8 @@ int main()
     int *a_data = NULL;          // prve 3 cisla zaznamu v data.txt
     double *a_data4 = NULL;      // posledne cislo zaznamu
     char *a_string = NULL;       // zaznam v string.txt
-    char *a_parse = NULL;        // zaznam v parse.txt
-    int *a_parse_lengths = NULL; // dlzky retazcov v a_parse
+    char **a_parse = NULL;       // zaznam v parse.txt
+    int *a_parse_lengths = NULL; // dlzky zaznamov parse.txt
     int *a_deleted = NULL;       // vymazane zaznamy na recyklaciu
     int s_deleted = 0;           // velkost s_deleted
 
@@ -375,9 +379,17 @@ int main()
     if (a_string)
         free(a_string);
     if (a_parse)
+    {
+        for (int i = 0; i < rec_count; ++i)
+        {
+            free(a_parse[i]);
+        }
         free(a_parse);
+    }
     if (a_parse_lengths)
+    {
         free(a_parse_lengths);
+    }
     if (a_deleted)
         free(a_deleted);
 
