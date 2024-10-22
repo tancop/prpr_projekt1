@@ -422,7 +422,7 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
     }
 }
 
-void w(int rec_count, int *restrict a_data, double *restrict a_data4,
+void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
        char *restrict a_string, char **restrict a_parse,
        int *restrict a_parse_lengths)
 {
@@ -446,10 +446,10 @@ void w(int rec_count, int *restrict a_data, double *restrict a_data4,
     }
 
     // indexy zaznamov ktore potrebujeme vymazat
-    int *deleted = (int *)malloc(rec_count * sizeof(int));
+    int *deleted = (int *)malloc(*rec_count * sizeof(int));
     // poloha v poli deleted
-    int deleted_pos = 0;
-    for (int i = 0; i < rec_count; ++i)
+    int deleted_count = 0;
+    for (int i = 0; i < *rec_count; ++i)
     {
         for (int j = 0; j < 6; ++j)
         {
@@ -459,14 +459,55 @@ void w(int rec_count, int *restrict a_data, double *restrict a_data4,
             if (j == 5)
             {
                 // sme na konci zaznamu a vsetky znaky sa rovnaju
-                printf("deleting at %d\n", i);
-                deleted[deleted_pos] = i;
-                ++deleted_pos;
+                deleted[deleted_count] = i;
+                ++deleted_count;
             }
         }
     }
 
+    // nastavime aby podmienka (i == deleted[offset]) neplatila
+    // pre extra prvok ked deleted[0] = 0
+    deleted[deleted_count] = -1;
+
+    if (deleted_count == 0)
+    {
+        // ziadne zaznamy nemaju hladane ID
+        printf("W: Vymazalo sa : 0 zaznamov !\n");
+        return;
+    }
+
+    // posun cez ktory berieme nove prvky
+    int offset = 1;
+    // zacneme od prveho vymazaneho zaznamu
+    for (int i = deleted[0]; i < *rec_count; ++i)
+    {
+        if (i == deleted[offset])
+        {
+            // uvolnime pole v a_parse
+            free(a_parse[i]);
+            ++offset;
+        }
+        a_data[i * 3] = a_data[(i + offset) * 3];
+        a_data[i * 3 + 1] = a_data[(i + offset) * 3 + 1];
+        a_data[i * 3 + 2] = a_data[(i + offset) * 3 + 2];
+
+        a_data4[i] = a_data4[i + offset];
+
+        // prepiseme cast a_string
+        for (int j = 0; j < 6; ++j)
+        {
+            a_string[i * 6 + j] = a_string[(i + offset) * 6 + j];
+        }
+
+        a_parse[i] = a_parse[i + offset];
+        a_parse_lengths[i] = a_parse_lengths[i + offset];
+    }
+
     free(deleted);
+    // znizime pocet zaznamov o vymazane
+    *rec_count -= deleted_count;
+
+    printf("W: Vymazalo sa : %d zaznamov !\n", deleted_count);
 }
 
 int main()
@@ -507,7 +548,7 @@ int main()
             e(rec_count, a_parse, a_parse_lengths);
             break;
         case 'w':
-            w(rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths);
+            w(&rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths);
             break;
         default:
             // príkaz nie je podporovaný
