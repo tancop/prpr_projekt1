@@ -510,6 +510,17 @@ void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
     printf("W: Vymazalo sa : %d zaznamov !\n", deleted_count);
 }
 
+void q(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
+       char *restrict a_string, char **restrict a_parse,
+       int *restrict a_parse_lengths)
+{
+    int pos;
+
+    // nacitame poziciu a prevedieme na 0 based index
+    scanf("%d", &pos);
+    --pos;
+}
+
 int main()
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
