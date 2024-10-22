@@ -365,6 +365,63 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     }
 }
 
+void e(int rec_count, char **a_parse, int *a_parse_lengths)
+{
+    if (!a_parse || !a_parse_lengths)
+    {
+        printf("E: Polia nie su vytvorene.\n");
+        return;
+    }
+    // hladany retazec - max 20 znakov
+    char query[20];
+    // dlzka hladaneho retazca
+    int query_length = 0;
+
+    // zahodime znak \n z predchadzajuceho prikazu
+    getchar();
+    // nacitame hladane slovo
+    for (int i = 0; i < 20; ++i)
+    {
+        char c = getchar();
+        if (c == '\n')
+            // koniec vstupu
+            break;
+        query[i] = c;
+        ++query_length;
+    }
+
+    // hladame v kazdom zazname
+    for (int i = 0; i < rec_count; ++i)
+    {
+        int length = a_parse_lengths[i];
+        // poloha v poli query
+        int query_idx = 0;
+        for (int j = 0; j < length; ++j)
+        {
+            if (a_parse[i][j] == query[query_idx])
+            {
+                // znak v a_parse[i] sa zhoduje so znakom v query
+                ++query_idx;
+                if (query_idx == query_length)
+                {
+                    // nasli sme vsetky znaky, vypiseme riadok
+                    for (int k = 0; k < length; ++k)
+                    {
+                        putchar(a_parse[i][k]);
+                    }
+                    printf("\n");
+                    break;
+                }
+            }
+            else
+            {
+                // resetujeme polohu v query
+                query_idx = 0;
+            }
+        }
+    }
+}
+
 int main()
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
@@ -374,7 +431,7 @@ int main()
     char **a_parse = NULL;       // zaznam v parse.txt
     int *a_parse_lengths = NULL; // dlzky zaznamov parse.txt
     int *a_deleted = NULL;       // vymazane zaznamy na recyklaciu
-    int s_deleted = 0;           // velkost s_deleted
+    int s_deleted = 0;           // velkost a_deleted
 
     int rec_count = 0; // max pocet zaznamov v dynamickych poliach
 
@@ -398,6 +455,9 @@ int main()
         case 'n':
             n(f_data, f_string, f_parse, &rec_count, &a_data, &a_data4,
               &a_string, &a_parse, &a_parse_lengths, &a_deleted, &s_deleted);
+            break;
+        case 'e':
+            e(rec_count, a_parse, a_parse_lengths);
             break;
         default:
             // príkaz nie je podporovaný
