@@ -422,6 +422,53 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
     }
 }
 
+void w(int rec_count, int *restrict a_data, double *restrict a_data4,
+       char *restrict a_string, char **restrict a_parse,
+       int *restrict a_parse_lengths)
+{
+    if (!a_data || !a_data4 || !a_string || !a_parse || !a_parse_lengths)
+    {
+        printf("W: Polia nie su vytvorene.\n");
+        return;
+    }
+    // ID ma vzdy 6 znakov
+    char query[6];
+    // zahodime znak \n z predchadzajuceho prikazu
+    getchar();
+    // nacitame hladane ID
+    for (int i = 0; i < 6; ++i)
+    {
+        char c = getchar();
+        if (c == '\n')
+            // koniec vstupu
+            break;
+        query[i] = c;
+    }
+
+    // indexy zaznamov ktore potrebujeme vymazat
+    int *deleted = (int *)malloc(rec_count * sizeof(int));
+    // poloha v poli deleted
+    int deleted_pos = 0;
+    for (int i = 0; i < rec_count; ++i)
+    {
+        for (int j = 0; j < 6; ++j)
+        {
+            if (a_string[i * 6 + j] != query[j])
+                // ID v zazname sa nerovna hladanemu
+                break;
+            if (j == 5)
+            {
+                // sme na konci zaznamu a vsetky znaky sa rovnaju
+                printf("deleting at %d\n", i);
+                deleted[deleted_pos] = i;
+                ++deleted_pos;
+            }
+        }
+    }
+
+    free(deleted);
+}
+
 int main()
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
@@ -458,6 +505,9 @@ int main()
             break;
         case 'e':
             e(rec_count, a_parse, a_parse_lengths);
+            break;
+        case 'w':
+            w(rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths);
             break;
         default:
             // príkaz nie je podporovaný
