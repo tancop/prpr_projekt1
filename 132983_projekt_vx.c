@@ -87,6 +87,7 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
 {
     for (int i = 0; i < rec_count; ++i)
     {
+        // skontrolujeme ci je zaznam vymazany
         int is_deleted = false;
         for (int j = 0; j < s_deleted; ++j)
         {
@@ -99,12 +100,39 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
         }
         if (is_deleted)
             continue;
+
+        printf("ID. mer. modulu: ");
+        if (a_string[i * 6] != '\n')
+        {
+            // riadok nie je prazdny
+            for (int j = 0; j < 6; ++j)
+            {
+                putchar(a_string[i * 6 + j]);
+            }
+        }
+        printf("\n");
+
+        printf("Hodnota 1: %d\n", a_data[i * 3]);
+        printf("Hodnota 2: %g\n", a_data4[i]);
+
+        printf("Poznámka: ");
+        // dlzka zaznamu v a_parse
+        int length = a_parse_lengths[i];
+        for (int j = 0; j < length; ++j)
+        {
+            putchar(a_parse[i][j]);
+        }
+        // koniec zaznamu a prazdny riadok
+        printf("\n\n");
     }
     return;
 }
 
 void v(FILE **restrict f_data, FILE **restrict f_string,
-       FILE **restrict f_parse)
+       FILE **restrict f_parse, int rec_count, int *restrict a_data,
+       double *restrict a_data4, char *restrict a_string,
+       char **restrict a_parse, int *restrict a_parse_lengths,
+       int *restrict a_deleted, int s_deleted)
 {
     char subcmd;
 
@@ -114,6 +142,9 @@ void v(FILE **restrict f_data, FILE **restrict f_string,
     {
     case '1':
         return v1(f_data, f_string, f_parse);
+    case '2':
+        return v2(rec_count, a_data, a_data4, a_string, a_parse,
+                  a_parse_lengths, a_deleted, s_deleted);
     default:
         printf("V: Nesprávne volba vypisu.\n");
     }
@@ -268,6 +299,9 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     {
         if (c == '\n')
         {
+            if (offset == 0)
+                // riadok ma dlzku 0
+                (*a_string)[base * 6] = '\n';
             // posunieme na dalsi char[6]
             ++base;
             offset = 0;
@@ -355,7 +389,8 @@ int main()
         switch (cmd)
         {
         case 'v':
-            v(&f_data, &f_string, &f_parse);
+            v(&f_data, &f_string, &f_parse, rec_count, a_data, a_data4,
+              a_string, a_parse, a_parse_lengths, a_deleted, s_deleted);
             break;
         case 'h':
             h(f_string);
