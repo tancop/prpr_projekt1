@@ -112,7 +112,8 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
         }
         printf("\n");
 
-        printf("Hodnota 1: %d\n", a_data[i * 3]);
+        // tretie cislo z riadku
+        printf("Hodnota 1: %d\n", a_data[i * 3 + 2]);
         printf("Hodnota 2: %g\n", a_data4[i]);
 
         printf("Poznámka: ");
