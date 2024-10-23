@@ -447,7 +447,7 @@ void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
 
     // indexy zaznamov ktore potrebujeme vymazat
     int *deleted = (int *)malloc(*rec_count * sizeof(int));
-    // poloha v poli deleted
+    // pocet vymazanych zaznamov
     int deleted_count = 0;
     for (int i = 0; i < *rec_count; ++i)
     {
@@ -479,7 +479,7 @@ void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
     // posun cez ktory berieme nove prvky
     int offset = 1;
     // zacneme od prveho vymazaneho zaznamu
-    for (int i = deleted[0]; i < *rec_count; ++i)
+    for (int i = deleted[0]; i < (*rec_count - deleted_count); ++i)
     {
         if (i == deleted[offset])
         {
@@ -646,7 +646,7 @@ int main()
         free(a_string);
     if (a_parse)
     {
-        for (int i = 0; i < rec_count; ++i)
+        for (int i = 0; i < rec_count + 1; ++i)
         {
             if (a_parse[i])
                 free(a_parse[i]);
