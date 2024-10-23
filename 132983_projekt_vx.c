@@ -576,7 +576,6 @@ void q(int *restrict rec_count, int **restrict a_data,
     }
 
     (*a_parse_lengths)[pos] = buf_size;
-    printf("q finished\n");
 }
 
 int main()
