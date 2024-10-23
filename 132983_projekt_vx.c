@@ -358,10 +358,9 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
                 (char *)malloc((*a_parse_lengths)[p_pos] * sizeof(char));
             l_pos = 0;
         }
-        else
-        {
-            (*a_parse)[p_pos][l_pos] = c;
-        }
+
+        (*a_parse)[p_pos][l_pos] = c;
+
         ++l_pos;
     }
 }
