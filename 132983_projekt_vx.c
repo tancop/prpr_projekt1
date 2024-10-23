@@ -546,7 +546,7 @@ void q(int *restrict rec_count, int **restrict a_data,
     // nacitame vstup do pola
     for (int i = 0; i < 6; ++i)
     {
-        (*a_string)[pos + i] = getchar();
+        (*a_string)[(pos * 6) + i] = getchar();
     }
     // zahodime znak \n
     getchar();
