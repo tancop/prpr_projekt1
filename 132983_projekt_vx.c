@@ -119,7 +119,7 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
         printf("Poznámka: ");
         // dlzka zaznamu v a_parse
         int length = a_parse_lengths[i];
-        for (int j = 0; j < length; ++j)
+        for (int j = 0; j < (i == 0 ? length : length - 1); ++j)
         {
             putchar(a_parse[i][j]);
         }
@@ -357,6 +357,8 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
             (*a_parse)[p_pos] =
                 (char *)malloc((*a_parse_lengths)[p_pos] * sizeof(char));
             l_pos = 0;
+            // preskocime znak \n
+            c = fgetc(f_parse);
         }
 
         (*a_parse)[p_pos][l_pos] = c;
@@ -646,7 +648,7 @@ int main()
         free(a_string);
     if (a_parse)
     {
-        for (int i = 0; i < rec_count + 1; ++i)
+        for (int i = 0; i < rec_count; ++i)
         {
             if (a_parse[i])
                 free(a_parse[i]);
