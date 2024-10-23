@@ -510,15 +510,73 @@ void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
     printf("W: Vymazalo sa : %d zaznamov !\n", deleted_count);
 }
 
-void q(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
-       char *restrict a_string, char **restrict a_parse,
-       int *restrict a_parse_lengths)
+void q(int *restrict rec_count, int **restrict a_data,
+       double **restrict a_data4, char **restrict a_string,
+       char ***restrict a_parse, int **restrict a_parse_lengths)
 {
+    if (!*a_data || !*a_data4 || !*a_string || !*a_parse || !*a_parse_lengths)
+    {
+        printf("Q: Polia nie su vytvorene.\n");
+        return;
+    }
+
     int pos;
 
     // nacitame poziciu a prevedieme na 0 based index
     scanf("%d", &pos);
     --pos;
+
+    if (pos > *rec_count)
+    {
+        // pridavame na koniec pola
+        pos = *rec_count + 1;
+        ++(*rec_count);
+
+        // realokujeme polia na novu velkost
+        *a_data = (int *)realloc(*a_data, *rec_count * (3 * sizeof(int)));
+        *a_data4 = (double *)realloc(*a_data, *rec_count * sizeof(double));
+        *a_string = (char *)realloc(*a_string, *rec_count * (6 * sizeof(char)));
+        *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
+        *a_parse_lengths =
+            (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
+    }
+
+    // zahodime znak \n z prikazu
+    getchar();
+    // nacitame vstup do pola
+    for (int i = 0; i < 6; ++i)
+    {
+        (*a_string)[pos + i] = getchar();
+    }
+    // zahodime znak \n
+    getchar();
+
+    scanf("%d %d %d %lf", &(*a_data)[pos * 3], &(*a_data)[pos * 3 + 1],
+          &(*a_data)[pos * 3 + 2], &(*a_data4)[pos]);
+
+    // zaznam v parse.txt ma max 500 znakov
+    char buf[500];
+    // dlzka zaznamu
+    int buf_size = 0;
+    char c;
+    getchar();
+    while ((c = getchar()) != '\n')
+    {
+        buf[buf_size] = c;
+        ++buf_size;
+    }
+
+    if ((*a_parse)[pos])
+        free((*a_parse)[pos]);
+    // skopirujeme vstup do noveho pola
+    (*a_parse)[pos] = (char *)malloc(buf_size * sizeof(char));
+    for (int i = 0; i < buf_size; ++i)
+    {
+        (*a_parse)[pos][i] = buf[i];
+    }
+
+    (*a_parse_lengths)[pos] = buf_size;
+    printf("q finished\n");
 }
 
 int main()
@@ -560,6 +618,10 @@ int main()
             break;
         case 'w':
             w(&rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths);
+            break;
+        case 'q':
+            q(&rec_count, &a_data, &a_data4, &a_string, &a_parse,
+              &a_parse_lengths);
             break;
         default:
             // príkaz nie je podporovaný
