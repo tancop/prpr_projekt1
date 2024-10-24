@@ -119,7 +119,7 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
         printf("Poznámka: ");
         // dlzka zaznamu v a_parse
         int length = a_parse_lengths[i];
-        for (int j = 0; j < (i == 0 ? length : length - 1); ++j)
+        for (int j = 0; j < length; ++j)
         {
             putchar(a_parse[i][j]);
         }
@@ -318,7 +318,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     *a_parse_lengths = (int *)malloc(*rec_count * sizeof(int));
 
     // pozicia v subore parse.txt
-    int f_pos = 0;
+    int f_pos = 1;
     int prev_f_pos = 0;
     // index v poli a_parse_lengths
     int pl_pos = 0;
@@ -327,7 +327,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     {
         if (c == '\n')
         {
-            (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos;
+            (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos - 1;
             prev_f_pos = f_pos;
             ++pl_pos;
         }
