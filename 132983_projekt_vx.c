@@ -424,11 +424,11 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
     }
 }
 
-void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
-       char *restrict a_string, char **restrict a_parse,
-       int *restrict a_parse_lengths)
+void w(int *restrict rec_count, int **restrict a_data,
+       double **restrict a_data4, char **restrict a_string,
+       char ***restrict a_parse, int **restrict a_parse_lengths)
 {
-    if (!a_data || !a_data4 || !a_string || !a_parse || !a_parse_lengths)
+    if (!*a_data || !*a_data4 || !*a_string || !*a_parse || !*a_parse_lengths)
     {
         printf("W: Polia nie su vytvorene.\n");
         return;
@@ -455,7 +455,7 @@ void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
     {
         for (int j = 0; j < 6; ++j)
         {
-            if (a_string[i * 6 + j] != query[j])
+            if ((*a_string)[i * 6 + j] != query[j])
                 // ID v zazname sa nerovna hladanemu
                 break;
             if (j == 5)
@@ -486,28 +486,36 @@ void w(int *restrict rec_count, int *restrict a_data, double *restrict a_data4,
         if (i == deleted[offset])
         {
             // uvolnime pole v a_parse
-            free(a_parse[i]);
+            free((*a_parse)[i]);
             ++offset;
         }
-        a_data[i * 3] = a_data[(i + offset) * 3];
-        a_data[i * 3 + 1] = a_data[(i + offset) * 3 + 1];
-        a_data[i * 3 + 2] = a_data[(i + offset) * 3 + 2];
+        (*a_data)[i * 3] = (*a_data)[(i + offset) * 3];
+        (*a_data)[i * 3 + 1] = (*a_data)[(i + offset) * 3 + 1];
+        (*a_data)[i * 3 + 2] = (*a_data)[(i + offset) * 3 + 2];
 
-        a_data4[i] = a_data4[i + offset];
+        (*a_data4)[i] = (*a_data4)[i + offset];
 
         // prepiseme cast a_string
         for (int j = 0; j < 6; ++j)
         {
-            a_string[i * 6 + j] = a_string[(i + offset) * 6 + j];
+            (*a_string)[i * 6 + j] = (*a_string)[(i + offset) * 6 + j];
         }
 
-        a_parse[i] = a_parse[i + offset];
-        a_parse_lengths[i] = a_parse_lengths[i + offset];
+        (*a_parse)[i] = (*a_parse)[i + offset];
+        (*a_parse_lengths)[i] = (*a_parse_lengths)[i + offset];
     }
 
     free(deleted);
     // znizime pocet zaznamov o vymazane
     *rec_count -= deleted_count;
+
+    // realokujeme polia na mensiu velkost
+    *a_data = (int *)realloc(*a_data, *rec_count * (3 * sizeof(int)));
+    *a_data4 = (double *)realloc(*a_data4, *rec_count * sizeof(double));
+    *a_string = (char *)realloc(*a_string, *rec_count * (6 * sizeof(char)));
+    *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
+    *a_parse_lengths =
+        (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
 
     printf("W: Vymazalo sa : %d zaznamov !\n", deleted_count);
 }
@@ -536,7 +544,7 @@ void q(int *restrict rec_count, int **restrict a_data,
 
         // realokujeme polia na novu velkost
         *a_data = (int *)realloc(*a_data, *rec_count * (3 * sizeof(int)));
-        *a_data4 = (double *)realloc(*a_data, *rec_count * sizeof(double));
+        *a_data4 = (double *)realloc(*a_data4, *rec_count * sizeof(double));
         *a_string = (char *)realloc(*a_string, *rec_count * (6 * sizeof(char)));
         *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
         *a_parse_lengths =
@@ -618,7 +626,8 @@ int main()
             e(rec_count, a_parse, a_parse_lengths);
             break;
         case 'w':
-            w(&rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths);
+            w(&rec_count, &a_data, &a_data4, &a_string, &a_parse,
+              &a_parse_lengths);
             break;
         case 'q':
             q(&rec_count, &a_data, &a_data4, &a_string, &a_parse,
