@@ -494,6 +494,11 @@ void w(int *restrict rec_count, int **restrict a_data,
     // zacneme od prveho vymazaneho zaznamu a kopirujeme prvky dozadu
     for (int i = deleted[0]; i < (*rec_count - deleted_count); ++i)
     {
+        if (i == deleted[deleted_pos])
+        {
+            ++offset;
+        }
+
         (*a_data)[i * 3] = (*a_data)[(i + offset) * 3];
         (*a_data)[i * 3 + 1] = (*a_data)[(i + offset) * 3 + 1];
         (*a_data)[i * 3 + 2] = (*a_data)[(i + offset) * 3 + 2];
