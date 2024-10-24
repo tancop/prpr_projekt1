@@ -478,17 +478,22 @@ void w(int *restrict rec_count, int **restrict a_data,
         return;
     }
 
+    // uvolnime polia v a_parse pre vymazane zaznamy
+    int deleted_pos = 0;
+    for (int i = 0; i < *rec_count; ++i)
+    {
+        if (i == deleted[deleted_pos])
+        {
+            free((*a_parse)[i]);
+            ++deleted_pos;
+        }
+    }
+
     // posun cez ktory berieme nove prvky
     int offset = 1;
-    // zacneme od prveho vymazaneho zaznamu
+    // zacneme od prveho vymazaneho zaznamu a kopirujeme prvky dozadu
     for (int i = deleted[0]; i < (*rec_count - deleted_count); ++i)
     {
-        if (i == deleted[offset])
-        {
-            // uvolnime pole v a_parse
-            free((*a_parse)[i]);
-            ++offset;
-        }
         (*a_data)[i * 3] = (*a_data)[(i + offset) * 3];
         (*a_data)[i * 3 + 1] = (*a_data)[(i + offset) * 3 + 1];
         (*a_data)[i * 3 + 2] = (*a_data)[(i + offset) * 3 + 2];
