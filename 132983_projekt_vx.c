@@ -546,10 +546,13 @@ void q(int *restrict rec_count, int **restrict a_data,
     scanf("%d", &pos);
     --pos;
 
-    if (pos > *rec_count)
+    // zmenili sme dlzku poli?
+    int resized = false;
+
+    if (pos >= *rec_count)
     {
         // pridavame na koniec pola
-        pos = *rec_count + 1;
+        pos = *rec_count;
         ++(*rec_count);
 
         // realokujeme polia na novu velkost
@@ -559,6 +562,8 @@ void q(int *restrict rec_count, int **restrict a_data,
         *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
         *a_parse_lengths =
             (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
+
+        resized = true;
     }
 
     // zahodime znak \n z prikazu
@@ -568,7 +573,7 @@ void q(int *restrict rec_count, int **restrict a_data,
     {
         (*a_string)[(pos * 6) + i] = getchar();
     }
-    // zahodime znak \n
+    // zahodime znak \n za vstupom
     getchar();
 
     scanf("%d %d %d %lf", &(*a_data)[pos * 3], &(*a_data)[pos * 3 + 1],
@@ -586,8 +591,10 @@ void q(int *restrict rec_count, int **restrict a_data,
         ++buf_size;
     }
 
-    if ((*a_parse)[pos])
+    // uvolnime pole ak predtym existovalo
+    if (!resized && (*a_parse)[pos])
         free((*a_parse)[pos]);
+
     // skopirujeme vstup do noveho pola
     (*a_parse)[pos] = (char *)malloc(buf_size * sizeof(char));
     for (int i = 0; i < buf_size; ++i)
