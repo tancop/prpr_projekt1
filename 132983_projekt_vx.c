@@ -143,9 +143,11 @@ void v(FILE **restrict f_data, FILE **restrict f_string,
     {
     case '1':
         v1(f_data, f_string, f_parse);
+        break;
     case '2':
         v2(rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths,
            a_deleted, s_deleted);
+        break;
     default:
         printf("V: Nesprávne volba vypisu.\n");
     }
