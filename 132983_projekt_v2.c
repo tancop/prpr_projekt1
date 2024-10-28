@@ -142,10 +142,12 @@ void v(FILE **restrict f_data, FILE **restrict f_string,
     switch (subcmd)
     {
     case '1':
-        return v1(f_data, f_string, f_parse);
+        v1(f_data, f_string, f_parse);
+        break;
     case '2':
-        return v2(rec_count, a_data, a_data4, a_string, a_parse,
-                  a_parse_lengths, a_deleted, s_deleted);
+        v2(rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths,
+           a_deleted, s_deleted);
+        break;
     default:
         printf("V: Nesprávne volba vypisu.\n");
     }
@@ -605,7 +607,7 @@ void q(int *restrict rec_count, int **restrict a_data,
     (*a_parse_lengths)[pos] = buf_size;
 }
 
-int main()
+int main(void)
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
     int *a_data = NULL;          // prve 3 cisla zaznamu v data.txt
