@@ -1,1 +1,4 @@
 a.out
+node_modules
+tester/.config-hash
+tester/.source-hash
