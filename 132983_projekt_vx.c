@@ -79,6 +79,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
         // koniec riadku s poznámkou a prázdny riadok
         printf("\n\n");
     }
+    fflush(stdout);
 }
 
 void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
@@ -126,7 +127,7 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
         // koniec zaznamu a prazdny riadok
         printf("\n\n");
     }
-    return;
+    fflush(stdout);
 }
 
 void v(FILE **restrict f_data, FILE **restrict f_string,
@@ -150,6 +151,7 @@ void v(FILE **restrict f_data, FILE **restrict f_string,
         break;
     default:
         printf("V: Nesprávne volba vypisu.\n");
+        fflush(stdout);
     }
 }
 
@@ -199,6 +201,7 @@ void h(FILE *f_string)
             // znak sa nachádza v súbore
             printf("%c : %d\n", index_to_char[i], freq);
     }
+    fflush(stdout);
 }
 
 void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
@@ -367,6 +370,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
 
         ++l_pos;
     }
+    fflush(stdout);
 }
 
 void e(int rec_count, char **a_parse, int *a_parse_lengths)
@@ -424,6 +428,7 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
             }
         }
     }
+    fflush(stdout);
 }
 
 void w(int *restrict rec_count, int **restrict a_data,
@@ -530,8 +535,10 @@ void w(int *restrict rec_count, int **restrict a_data,
         (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
 
     printf("W: Vymazalo sa : %d zaznamov !\n", deleted_count);
+    fflush(stdout);
 }
 
+// TODO: q always inserts dont overwrite
 void q(int *restrict rec_count, int **restrict a_data,
        double **restrict a_data4, char **restrict a_string,
        char ***restrict a_parse, int **restrict a_parse_lengths)
@@ -605,6 +612,7 @@ void q(int *restrict rec_count, int **restrict a_data,
     }
 
     (*a_parse_lengths)[pos] = buf_size;
+    fflush(stdout);
 }
 
 int main(void)
