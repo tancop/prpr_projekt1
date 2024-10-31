@@ -555,24 +555,37 @@ void q(int *restrict rec_count, int **restrict a_data,
     scanf("%d", &pos);
     --pos;
 
-    // zmenili sme dlzku poli?
-    int resized = false;
-
     if (pos >= *rec_count)
     {
         // pridavame na koniec pola
         pos = *rec_count;
-        ++(*rec_count);
+    }
+    ++(*rec_count);
 
-        // realokujeme polia na novu velkost
-        *a_data = (int *)realloc(*a_data, *rec_count * (3 * sizeof(int)));
-        *a_data4 = (double *)realloc(*a_data4, *rec_count * sizeof(double));
-        *a_string = (char *)realloc(*a_string, *rec_count * (6 * sizeof(char)));
-        *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
-        *a_parse_lengths =
-            (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
+    // realokujeme polia na novu velkost
+    *a_data = (int *)realloc(*a_data, *rec_count * (3 * sizeof(int)));
+    *a_data4 = (double *)realloc(*a_data4, *rec_count * sizeof(double));
+    *a_string = (char *)realloc(*a_string, *rec_count * (6 * sizeof(char)));
+    *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
+    *a_parse_lengths =
+        (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
 
-        resized = true;
+    // posunieme zaznamy za cielovym indexom o 1 dozadu
+    for (int i = *rec_count; i > pos + 1; --i)
+    {
+        (*a_data)[3 * i] = (*a_data)[3 * (i - 1)];
+        (*a_data)[3 * i + 1] = (*a_data)[3 * (i - 1) + 1];
+        (*a_data)[3 * i + 2] = (*a_data)[3 * (i - 1) + 2];
+
+        (*a_data4)[i] = (*a_data4)[i - 1];
+
+        for (int j = 0; j < 6; ++j)
+        {
+            (*a_string)[6 * i + j] = (*a_string)[6 * (i - 1) + j];
+        }
+
+        (*a_parse)[i] = (*a_parse)[i - 1];
+        (*a_parse_lengths)[i] = (*a_parse_lengths)[i - 1];
     }
 
     // zahodime znak \n z prikazu
@@ -599,10 +612,6 @@ void q(int *restrict rec_count, int **restrict a_data,
         buf[buf_size] = c;
         ++buf_size;
     }
-
-    // uvolnime pole ak predtym existovalo
-    if (!resized && (*a_parse)[pos])
-        free((*a_parse)[pos]);
 
     // skopirujeme vstup do noveho pola
     (*a_parse)[pos] = (char *)malloc(buf_size * sizeof(char));
