@@ -538,7 +538,6 @@ void w(int *restrict rec_count, int **restrict a_data,
     fflush(stdout);
 }
 
-// TODO: q always inserts dont overwrite
 void q(int *restrict rec_count, int **restrict a_data,
        double **restrict a_data4, char **restrict a_string,
        char ***restrict a_parse, int **restrict a_parse_lengths)
