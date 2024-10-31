@@ -50,6 +50,46 @@ async fn main() {
 
     let tests = yaml.tests;
 
+    let Ok(compile_command) = env::var("TESTER_COMPILE_COMMAND") else {
+        println!("error: compile command not set");
+        return;
+    };
+
+    let compile_command = compile_command.split(" ").collect::<Vec<_>>();
+
+    let Some((cmd, args)) = compile_command.split_first() else {
+        println!("error: compile command is empty");
+        return;
+    };
+
+    let mut cmd = Command::new(cmd);
+    cmd.args(args);
+
+    let mut child = match cmd.spawn() {
+        Ok(val) => val,
+        Err(err) => {
+            println!("error: failed to spawn compiler: {:?}", err);
+            return;
+        }
+    };
+
+    match child.wait().await {
+        Ok(code) => {
+            if !code.success() {
+                if let Some(code) = code.code() {
+                    println!("error: compiler exited with code {}", code);
+                } else {
+                    println!("error: compiler exited with failure code");
+                }
+                return;
+            }
+        }
+        Err(err) => {
+            println!("error: compiler returned error {:?}", err);
+            return;
+        }
+    }
+
     let Ok(run_command) = env::var("TESTER_RUN_COMMAND") else {
         println!("error: run command not set");
         return;
