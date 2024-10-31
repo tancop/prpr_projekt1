@@ -55,6 +55,7 @@ async fn main() {
     };
 
     let mut success_count = 0;
+    let mut points = 0.;
     let tests_count = tests.len();
 
     for test in tests {
@@ -146,6 +147,7 @@ async fn main() {
 
         if success {
             success_count += 1;
+            points += test.points;
             println!("test \"{}\" success", test.name);
         }
     }
@@ -156,4 +158,5 @@ async fn main() {
         tests_count - success_count,
         success_count
     );
+    println!("points: {:.2}", points);
 }
