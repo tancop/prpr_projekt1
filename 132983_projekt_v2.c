@@ -79,6 +79,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
         // koniec riadku s poznámkou a prázdny riadok
         printf("\n\n");
     }
+    fflush(stdout);
 }
 
 void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
@@ -126,7 +127,7 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
         // koniec zaznamu a prazdny riadok
         printf("\n\n");
     }
-    return;
+    fflush(stdout);
 }
 
 void v(FILE **restrict f_data, FILE **restrict f_string,
@@ -150,6 +151,7 @@ void v(FILE **restrict f_data, FILE **restrict f_string,
         break;
     default:
         printf("V: Nesprávne volba vypisu.\n");
+        fflush(stdout);
     }
 }
 
@@ -199,6 +201,7 @@ void h(FILE *f_string)
             // znak sa nachádza v súbore
             printf("%c : %d\n", index_to_char[i], freq);
     }
+    fflush(stdout);
 }
 
 void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
@@ -367,6 +370,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
 
         ++l_pos;
     }
+    fflush(stdout);
 }
 
 void e(int rec_count, char **a_parse, int *a_parse_lengths)
@@ -424,6 +428,7 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
             }
         }
     }
+    fflush(stdout);
 }
 
 void w(int *restrict rec_count, int **restrict a_data,
@@ -530,6 +535,7 @@ void w(int *restrict rec_count, int **restrict a_data,
         (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
 
     printf("W: Vymazalo sa : %d zaznamov !\n", deleted_count);
+    fflush(stdout);
 }
 
 void q(int *restrict rec_count, int **restrict a_data,
@@ -548,24 +554,37 @@ void q(int *restrict rec_count, int **restrict a_data,
     scanf("%d", &pos);
     --pos;
 
-    // zmenili sme dlzku poli?
-    int resized = false;
-
     if (pos >= *rec_count)
     {
         // pridavame na koniec pola
         pos = *rec_count;
-        ++(*rec_count);
+    }
+    ++(*rec_count);
 
-        // realokujeme polia na novu velkost
-        *a_data = (int *)realloc(*a_data, *rec_count * (3 * sizeof(int)));
-        *a_data4 = (double *)realloc(*a_data4, *rec_count * sizeof(double));
-        *a_string = (char *)realloc(*a_string, *rec_count * (6 * sizeof(char)));
-        *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
-        *a_parse_lengths =
-            (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
+    // realokujeme polia na novu velkost
+    *a_data = (int *)realloc(*a_data, *rec_count * (3 * sizeof(int)));
+    *a_data4 = (double *)realloc(*a_data4, *rec_count * sizeof(double));
+    *a_string = (char *)realloc(*a_string, *rec_count * (6 * sizeof(char)));
+    *a_parse = (char **)realloc(*a_parse, *rec_count * sizeof(char *));
+    *a_parse_lengths =
+        (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
 
-        resized = true;
+    // posunieme zaznamy za cielovym indexom o 1 dozadu
+    for (int i = *rec_count; i > pos + 1; --i)
+    {
+        (*a_data)[3 * i] = (*a_data)[3 * (i - 1)];
+        (*a_data)[3 * i + 1] = (*a_data)[3 * (i - 1) + 1];
+        (*a_data)[3 * i + 2] = (*a_data)[3 * (i - 1) + 2];
+
+        (*a_data4)[i] = (*a_data4)[i - 1];
+
+        for (int j = 0; j < 6; ++j)
+        {
+            (*a_string)[6 * i + j] = (*a_string)[6 * (i - 1) + j];
+        }
+
+        (*a_parse)[i] = (*a_parse)[i - 1];
+        (*a_parse_lengths)[i] = (*a_parse_lengths)[i - 1];
     }
 
     // zahodime znak \n z prikazu
@@ -593,10 +612,6 @@ void q(int *restrict rec_count, int **restrict a_data,
         ++buf_size;
     }
 
-    // uvolnime pole ak predtym existovalo
-    if (!resized && (*a_parse)[pos])
-        free((*a_parse)[pos]);
-
     // skopirujeme vstup do noveho pola
     (*a_parse)[pos] = (char *)malloc(buf_size * sizeof(char));
     for (int i = 0; i < buf_size; ++i)
@@ -605,6 +620,7 @@ void q(int *restrict rec_count, int **restrict a_data,
     }
 
     (*a_parse_lengths)[pos] = buf_size;
+    fflush(stdout);
 }
 
 int main(void)
