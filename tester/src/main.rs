@@ -24,6 +24,7 @@ struct SequenceEntry {
 struct Test {
     name: String,
     points: f32,
+    files_available: Option<bool>,
     sequence: Vec<SequenceEntry>,
 }
 
@@ -36,12 +37,12 @@ struct InputFile {
 async fn main() {
     _ = dotenvy::dotenv();
 
-    let Ok(input_file) = File::open("input.yaml") else {
+    let Ok(yaml_file) = File::open("input.yaml") else {
         println!("error: input.yaml not found");
         return;
     };
 
-    let Ok(yaml) = serde_yml::from_reader::<BufReader<File>, InputFile>(BufReader::new(input_file))
+    let Ok(yaml) = serde_yml::from_reader::<BufReader<File>, InputFile>(BufReader::new(yaml_file))
     else {
         println!("error: invalid input.yaml");
         return;
@@ -54,11 +55,28 @@ async fn main() {
         return;
     };
 
+    let Ok(input_files) = env::var("TESTER_INPUT_FILES") else {
+        println!("error: input files not set");
+        return;
+    };
+
+    let input_files = input_files.split(";").collect::<Vec<_>>();
+
     let mut success_count = 0;
     let mut points = 0.;
     let tests_count = tests.len();
 
     for test in tests {
+        if test.files_available == Some(false) {
+            // rename input files
+            for path in &input_files {
+                let Ok(_) = std::fs::rename(path, path.to_owned().to_owned() + ".disabled") else {
+                    println!("error: couldn't rename input file {}", path);
+                    return;
+                };
+            }
+        }
+
         let mut cmd = Command::new(&run_command);
         cmd.stdout(Stdio::piped());
         cmd.stdin(Stdio::piped());
@@ -144,6 +162,16 @@ async fn main() {
             }
         }
         drop(stdin);
+
+        if test.files_available == Some(false) {
+            // rename input files back
+            for path in &input_files {
+                let Ok(_) = std::fs::rename(path.to_owned().to_owned() + ".disabled", path) else {
+                    println!("error: couldn't restore input file {}", path);
+                    return;
+                };
+            }
+        }
 
         if success {
             success_count += 1;
