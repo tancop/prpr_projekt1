@@ -149,6 +149,7 @@ async fn main() {
         const LINE_READ_TIMEOUT_MS: u64 = 10;
 
         let mut success = true;
+        let mut output_line = 0;
 
         'seq: for i in 0..test.sequence.len() {
             let entry = &test.sequence[i];
@@ -164,6 +165,7 @@ async fn main() {
                     }
                 };
             } else if let Some(output) = &entry.output {
+                output_line += 1;
                 let result = tokio::time::timeout(
                     Duration::from_millis(LINE_READ_TIMEOUT_MS),
                     reader.read_until(b'\n', &mut buf),
@@ -183,8 +185,9 @@ async fn main() {
 
                 if buf_string.trim_end() != output.trim_end() {
                     println!(
-                        "test \"{}\" failed: expected line \"{}\", found \"{}\"",
+                        "test \"{}\" failed on line {}: expected line \"{}\", found \"{}\"",
                         test.name,
+                        output_line,
                         output,
                         buf_string.trim_end()
                     );
