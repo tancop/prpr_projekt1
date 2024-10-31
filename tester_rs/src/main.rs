@@ -79,6 +79,7 @@ async fn main() {
 
         let mut reader = tokio::io::BufReader::new(stdout);
 
+        // handle non zero exit codes - segfault, stack overflow
         let test_name = test.name.clone();
         tokio::spawn(async move {
             if let Ok(status) = child.wait().await {
@@ -99,6 +100,7 @@ async fn main() {
         'seq: for i in 0..test.sequence.len() {
             let entry = &test.sequence[i];
             if let Some(input) = &entry.input {
+                // write line + \n to process stdin
                 let mut input_line = input.clone();
                 input_line.push('\n');
                 match stdin.write(input_line.as_bytes()).await {
@@ -109,26 +111,35 @@ async fn main() {
                     }
                 };
             } else if let Some(output) = &entry.output {
-                while let Ok(_) = tokio::time::timeout(
+                let result = tokio::time::timeout(
                     Duration::from_millis(LINE_READ_TIMEOUT_MS),
                     reader.read_until(b'\n', &mut buf),
                 )
-                .await
-                {
-                    let Ok(buf_string) = str::from_utf8(&buf) else {
-                        println!("test \"{}\" failed: output is not valid UTF-8", test.name);
-                        success = false;
-                        break 'seq;
-                    };
-                    if buf_string != output {
-                        println!(
-                            "test \"{}\" failed: expected line \"{}\", found \"{}\"",
-                            test.name, output, buf_string
-                        );
-                        success = false;
-                        break 'seq;
-                    }
+                .await;
+
+                if result.is_err() && buf.len() == 0 {
+                    // timed out, process is waiting for next input
+                    continue;
                 }
+
+                let Ok(buf_string) = str::from_utf8(&buf) else {
+                    println!("test \"{}\" failed: output is not valid UTF-8", test.name);
+                    success = false;
+                    break 'seq;
+                };
+
+                if buf_string.trim_end() != output.trim_end() {
+                    println!(
+                        "test \"{}\" failed: expected line \"{}\", found \"{}\"",
+                        test.name,
+                        output,
+                        buf_string.trim_end()
+                    );
+                    success = false;
+                    break 'seq;
+                }
+
+                buf.clear();
             }
         }
         drop(stdin);
