@@ -1,12 +1,6 @@
 use core::str;
 use serde::Deserialize;
-use std::{
-    env,
-    fs::File,
-    io::BufReader,
-    process::{ExitStatus, Stdio},
-    time::Duration,
-};
+use std::{env, fs::File, io::BufReader, process::Stdio, time::Duration};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt},
     process::Command,
@@ -176,7 +170,7 @@ async fn main() {
                 )
                 .await;
 
-                if result.is_err() && buf.len() == 0 {
+                if result.is_err() && buf.is_empty() {
                     // timed out, process is waiting for next input
                     continue;
                 }
