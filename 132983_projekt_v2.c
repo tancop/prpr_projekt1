@@ -570,7 +570,7 @@ void q(int *restrict rec_count, int **restrict a_data,
         (int *)realloc(*a_parse_lengths, *rec_count * sizeof(int));
 
     // posunieme zaznamy za cielovym indexom o 1 dozadu
-    for (int i = *rec_count; i > pos + 1; --i)
+    for (int i = *rec_count - 1; i > pos; --i)
     {
         (*a_data)[3 * i] = (*a_data)[3 * (i - 1)];
         (*a_data)[3 * i + 1] = (*a_data)[3 * (i - 1) + 1];
