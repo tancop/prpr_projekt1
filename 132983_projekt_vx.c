@@ -47,7 +47,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
 
     while (fgets(id_string, 7, *f_string))
     {
-        if (id_string[0] == '\n')
+        if (id_string[0] == '\n' || id_string[0] == '\r')
         {
             // prázdny riadok v string.txt
             printf("ID. mer. modulu:\n");
@@ -290,6 +290,11 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
             ++base;
             offset = 0;
         }
+        else if (c == '\r')
+        {
+            // preskocime prvy znak CRLF
+            continue;
+        }
         else
         {
             // zapiseme znak do pola
@@ -308,11 +313,16 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
 
     while ((c = fgetc(f_parse)) != EOF)
     {
-        if (c == '\n')
+        if (c == '\n' || c == '\r')
         {
             (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos - 1;
             prev_f_pos = f_pos;
             ++pl_pos;
+
+            if (c == '\r')
+                // CR+LF je koniec jedneho riadku
+                // nechceme vytvorit dalsi
+                ++f_pos;
         }
         ++f_pos;
     }
@@ -343,6 +353,11 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
             // preskocime znak \n
             c = fgetc(f_parse);
         }
+        else if (c == '\r')
+        {
+            // preskocime prvy znak CRLF
+            continue;
+        }
 
         (*a_parse)[p_pos][l_pos] = c;
 
@@ -369,9 +384,11 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
     for (int i = 0; i < 20; ++i)
     {
         char c = getchar();
-        if (c == '\n')
+        if (c == '\n' || c == '\r')
+        {
             // koniec vstupu
             break;
+        }
         query[i] = c;
         ++query_length;
     }
@@ -422,13 +439,16 @@ void w(int *restrict rec_count, int **restrict a_data,
     char query[6];
     // zahodime znak \n z predchadzajuceho prikazu
     getchar();
+
     // nacitame hladane ID
     for (int i = 0; i < 6; ++i)
     {
         char c = getchar();
-        if (c == '\n')
+        if (c == '\r' || c == '\n')
+        {
             // koniec vstupu
             break;
+        }
         query[i] = c;
     }
 
