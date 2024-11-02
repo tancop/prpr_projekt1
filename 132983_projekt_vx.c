@@ -84,24 +84,10 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
 
 void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
         char *restrict a_string, char **restrict a_parse,
-        int *restrict a_parse_lengths, int *restrict a_deleted, int s_deleted)
+        int *restrict a_parse_lengths)
 {
     for (int i = 0; i < rec_count; ++i)
     {
-        // skontrolujeme ci je zaznam vymazany
-        int is_deleted = false;
-        for (int j = 0; j < s_deleted; ++j)
-        {
-            if (a_deleted[j] == i)
-            {
-                // zaznam sme uz vymazali
-                is_deleted = true;
-                break;
-            }
-        }
-        if (is_deleted)
-            continue;
-
         printf("ID. mer. modulu: ");
         if (a_string[i * 6] != '\n')
         {
@@ -133,8 +119,7 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
 void v(FILE **restrict f_data, FILE **restrict f_string,
        FILE **restrict f_parse, int rec_count, int *restrict a_data,
        double *restrict a_data4, char *restrict a_string,
-       char **restrict a_parse, int *restrict a_parse_lengths,
-       int *restrict a_deleted, int s_deleted)
+       char **restrict a_parse, int *restrict a_parse_lengths)
 {
     char subcmd;
 
@@ -146,8 +131,7 @@ void v(FILE **restrict f_data, FILE **restrict f_string,
         v1(f_data, f_string, f_parse);
         break;
     case '2':
-        v2(rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths,
-           a_deleted, s_deleted);
+        v2(rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths);
         break;
     default:
         printf("V: Nesprávne volba vypisu.\n");
@@ -207,8 +191,7 @@ void h(FILE *f_string)
 void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
        int *rec_count, int **restrict a_data, double **restrict a_data4,
        char **restrict a_string, char ***restrict a_parse,
-       int **restrict a_parse_lengths, int **restrict a_deleted,
-       int *restrict s_deleted)
+       int **restrict a_parse_lengths)
 {
     if (!f_data || !f_string || !f_parse)
     {
@@ -241,11 +224,6 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     if (*a_parse_lengths)
     {
         free(*a_parse_lengths);
-    }
-    if (*a_deleted)
-    {
-        free(*a_deleted);
-        *s_deleted = 0;
     }
 
     int s_data = 0, s_string = 0, s_parse = 0;
@@ -631,8 +609,6 @@ int main(void)
     char *a_string = NULL;       // zaznam v string.txt
     char **a_parse = NULL;       // zaznam v parse.txt
     int *a_parse_lengths = NULL; // dlzky zaznamov parse.txt
-    int *a_deleted = NULL;       // vymazane zaznamy na recyklaciu
-    int s_deleted = 0;           // velkost a_deleted
 
     int rec_count = 0; // max pocet zaznamov v dynamickych poliach
 
@@ -648,14 +624,14 @@ int main(void)
         {
         case 'v':
             v(&f_data, &f_string, &f_parse, rec_count, a_data, a_data4,
-              a_string, a_parse, a_parse_lengths, a_deleted, s_deleted);
+              a_string, a_parse, a_parse_lengths);
             break;
         case 'h':
             h(f_string);
             break;
         case 'n':
             n(f_data, f_string, f_parse, &rec_count, &a_data, &a_data4,
-              &a_string, &a_parse, &a_parse_lengths, &a_deleted, &s_deleted);
+              &a_string, &a_parse, &a_parse_lengths);
             break;
         case 'e':
             e(rec_count, a_parse, a_parse_lengths);
@@ -703,8 +679,6 @@ int main(void)
     {
         free(a_parse_lengths);
     }
-    if (a_deleted)
-        free(a_deleted);
 
     return 0;
 }
