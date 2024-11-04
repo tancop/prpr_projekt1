@@ -5,8 +5,7 @@
 #define false (0)
 #define true (1)
 
-void v1(FILE **restrict f_data, FILE **restrict f_string,
-        FILE **restrict f_parse)
+void v1(FILE **f_data, FILE **f_string, FILE **f_parse)
 {
     if (!*f_data)
     {
@@ -20,7 +19,7 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
     }
     if (!*f_string)
     {
-        *f_string = fopen("string.txt", "r");
+        *f_string = fopen("string.txt", "rb");
         if (!*f_string)
         {
             printf("V1: Neotvorene txt subory.\n");
@@ -42,27 +41,27 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
     rewind(*f_string);
     rewind(*f_parse);
 
-    // riadok v string.txt má max 6 znakov + \n
-    char id_string[7];
+    /* riadok v string.txt má max 6 znakov + \r\n + \0 */
+    char id_string[9];
 
-    while (fgets(id_string, 7, *f_string))
+    while (fgets(id_string, 8, *f_string) != NULL)
     {
-        if (id_string[0] == '\n' || id_string[0] == '\r')
+        if (id_string[0] == '\r' || id_string[0] == '\n')
         {
-            // prázdny riadok v string.txt
+            /* prázdny riadok v string.txt */
             printf("ID. mer. modulu:\n");
         }
         else
         {
-            printf("ID. mer. modulu: %s\n", id_string);
-            // posunieme indikátor na začiatok ďalšieho riadku
+            printf("ID. mer. modulu: %6s\n", id_string);
+            /* posunieme indikátor na začiatok ďalšieho riadku */
             fseek(*f_string, 1, SEEK_CUR);
         }
 
         int h1;
         double h2;
 
-        // zahodíme prvé dve čísla cez %*
+        /* zahodíme prvé dve čísla cez %* */
         fscanf(*f_data, "%*d %*d %d %lf", &h1, &h2);
         printf("Hodnota 1: %d\nHodnota 2: %lg\n", h1, h2);
 
@@ -70,26 +69,30 @@ void v1(FILE **restrict f_data, FILE **restrict f_string,
 
         int c;
 
-        // vypisujeme znaky z parse.txt do konca riadku
-        while ((c = fgetc(*f_parse)) != '\n')
+        /* vypisujeme znaky z parse.txt do konca riadku */
+        while ((c = fgetc(*f_parse)) != '\n' && c != '\r')
         {
             putchar(c);
         }
 
-        // koniec riadku s poznámkou a prázdny riadok
+        /* koniec riadku s poznámkou a prázdny riadok */
         printf("\n\n");
     }
     fflush(stdout);
 }
 
-void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
-        char *restrict a_string, char **restrict a_parse,
-        int *restrict a_parse_lengths)
+void v2(int rec_count, int *a_data, double *a_data4, char *a_string,
+        char **a_parse, int *a_parse_lengths)
 {
+    if (!a_data || !a_data4 || !a_string || !a_parse)
+    {
+        printf("V2: Nenaplnene polia.\n");
+        return;
+    }
     for (int i = 0; i < rec_count; ++i)
     {
         printf("ID. mer. modulu: ");
-        if (a_string[i * 6] != '\n')
+        if (a_string[i * 6] != '\n' && a_string[i * 6] != '\r')
         {
             // riadok nie je prazdny
             for (int j = 0; j < 6; ++j)
@@ -116,10 +119,9 @@ void v2(int rec_count, int *restrict a_data, double *restrict a_data4,
     fflush(stdout);
 }
 
-void v(FILE **restrict f_data, FILE **restrict f_string,
-       FILE **restrict f_parse, int rec_count, int *restrict a_data,
-       double *restrict a_data4, char *restrict a_string,
-       char **restrict a_parse, int *restrict a_parse_lengths)
+void v(FILE **f_data, FILE **f_string, FILE **f_parse, int rec_count,
+       int *a_data, double *a_data4, char *a_string, char **a_parse,
+       int *a_parse_lengths)
 {
     char subcmd;
 
@@ -188,10 +190,9 @@ void h(FILE *f_string)
     fflush(stdout);
 }
 
-void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
-       int *rec_count, int **restrict a_data, double **restrict a_data4,
-       char **restrict a_string, char ***restrict a_parse,
-       int **restrict a_parse_lengths)
+void n(FILE *f_data, FILE *f_string, FILE *f_parse, int *rec_count,
+       int **a_data, double **a_data4, char **a_string, char ***a_parse,
+       int **a_parse_lengths)
 {
     if (!f_data || !f_string || !f_parse)
     {
@@ -281,7 +282,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     // pouzijeme uz deklarovany int c
     while ((c = fgetc(f_string)) != EOF)
     {
-        if (c == '\n')
+        if (c == '\n' || c == '\r')
         {
             if (offset == 0)
                 // riadok ma dlzku 0
@@ -289,11 +290,10 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
             // posunieme na dalsi char[6]
             ++base;
             offset = 0;
-        }
-        else if (c == '\r')
-        {
-            // preskocime prvy znak CRLF
-            continue;
+
+            // zahodime prvy znak CRLF
+            if (c == '\r')
+                fgetc(f_string);
         }
         else
         {
@@ -313,16 +313,19 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
 
     while ((c = fgetc(f_parse)) != EOF)
     {
-        if (c == '\n' || c == '\r')
+        if (c == '\n')
         {
             (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos - 1;
             prev_f_pos = f_pos;
             ++pl_pos;
-
-            if (c == '\r')
-                // CR+LF je koniec jedneho riadku
-                // nechceme vytvorit dalsi
-                ++f_pos;
+        }
+        else if (c == '\r')
+        {
+            (*a_parse_lengths)[pl_pos] = f_pos - prev_f_pos - 1;
+            prev_f_pos = f_pos;
+            ++pl_pos;
+            // zahodime druhy znak CRLF
+            fgetc(f_parse);
         }
         ++f_pos;
     }
@@ -340,7 +343,7 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
     // nacitame obsah parse.txt do a_parse
     while ((c = fgetc(f_parse)) != EOF)
     {
-        if (c == '\n')
+        if (c == '\n' || c == '\r')
         {
             ++p_pos;
             if (p_pos >= *rec_count)
@@ -350,13 +353,12 @@ void n(FILE *restrict f_data, FILE *restrict f_string, FILE *restrict f_parse,
             (*a_parse)[p_pos] =
                 (char *)malloc((*a_parse_lengths)[p_pos] * sizeof(char));
             l_pos = 0;
+
+            // preskocime znak \r v CRLF
+            if (c == '\r')
+                fgetc(f_parse);
             // preskocime znak \n
             c = fgetc(f_parse);
-        }
-        else if (c == '\r')
-        {
-            // preskocime prvy znak CRLF
-            continue;
         }
 
         (*a_parse)[p_pos][l_pos] = c;
@@ -385,10 +387,8 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
     {
         char c = getchar();
         if (c == '\n' || c == '\r')
-        {
             // koniec vstupu
             break;
-        }
         query[i] = c;
         ++query_length;
     }
@@ -426,9 +426,8 @@ void e(int rec_count, char **a_parse, int *a_parse_lengths)
     fflush(stdout);
 }
 
-void w(int *restrict rec_count, int **restrict a_data,
-       double **restrict a_data4, char **restrict a_string,
-       char ***restrict a_parse, int **restrict a_parse_lengths)
+void w(int *rec_count, int **a_data, double **a_data4, char **a_string,
+       char ***a_parse, int **a_parse_lengths)
 {
     if (!*a_data || !*a_data4 || !*a_string || !*a_parse || !*a_parse_lengths)
     {
@@ -439,16 +438,13 @@ void w(int *restrict rec_count, int **restrict a_data,
     char query[6];
     // zahodime znak \n z predchadzajuceho prikazu
     getchar();
-
     // nacitame hladane ID
     for (int i = 0; i < 6; ++i)
     {
         char c = getchar();
-        if (c == '\r' || c == '\n')
-        {
+        if (c == '\n' || c == '\r')
             // koniec vstupu
             break;
-        }
         query[i] = c;
     }
 
@@ -536,9 +532,8 @@ void w(int *restrict rec_count, int **restrict a_data,
     fflush(stdout);
 }
 
-void q(int *restrict rec_count, int **restrict a_data,
-       double **restrict a_data4, char **restrict a_string,
-       char ***restrict a_parse, int **restrict a_parse_lengths)
+void q(int *rec_count, int **a_data, double **a_data4, char **a_string,
+       char ***a_parse, int **a_parse_lengths)
 {
     if (!*a_data || !*a_data4 || !*a_string || !*a_parse || !*a_parse_lengths)
     {
@@ -604,7 +599,7 @@ void q(int *restrict rec_count, int **restrict a_data,
     int buf_size = 0;
     char c;
     getchar();
-    while ((c = getchar()) != '\n')
+    while ((c = getchar()) != '\n' && c != '\r')
     {
         buf[buf_size] = c;
         ++buf_size;
