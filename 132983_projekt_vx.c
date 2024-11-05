@@ -98,6 +98,10 @@ void v1(FILE **f_data, FILE **f_string, FILE **f_parse)
         {
             putchar(c);
         }
+        if (c == '\r')
+        {
+            fgetc(*f_parse);
+        }
 
         /* koniec riadku s poznámkou a prázdny riadok */
         printf("\n\n");
