@@ -5,6 +5,30 @@
 #define false (0)
 #define true (1)
 
+typedef struct DataRecord
+{
+    int id, zn, h1;
+    double h2;
+} DataRecord;
+
+typedef struct ParseRecord
+{
+    char id[6];
+    int n1, hodina, minuta;
+    char *t;
+    // dlzka retazca t
+    int t_length;
+} ParseRecord;
+
+typedef struct Node
+{
+    char id[6];
+    DataRecord data;
+    ParseRecord parse;
+    struct Node *prev;
+    struct Node *next;
+} Node;
+
 void v1(FILE **f_data, FILE **f_string, FILE **f_parse)
 {
     if (!*f_data)
@@ -368,6 +392,19 @@ void n(FILE *f_data, FILE *f_string, FILE *f_parse, int *rec_count,
     fflush(stdout);
 }
 
+void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node *list)
+{
+    if (!f_data || !f_string || !f_parse)
+    {
+        printf("M: Neotvoreny subor.\n");
+        return;
+    }
+
+    rewind(f_data);
+    rewind(f_string);
+    rewind(f_parse);
+}
+
 void e(int rec_count, char **a_parse, int *a_parse_lengths)
 {
     if (!a_parse || !a_parse_lengths)
@@ -624,6 +661,7 @@ int main(void)
     char *a_string = NULL;       // zaznam v string.txt
     char **a_parse = NULL;       // zaznam v parse.txt
     int *a_parse_lengths = NULL; // dlzky zaznamov parse.txt
+    Node *list = NULL;           // zaciatok spajaneho zoznamu
 
     int rec_count = 0; // max pocet zaznamov v dynamickych poliach
 
@@ -658,6 +696,9 @@ int main(void)
         case 'q':
             q(&rec_count, &a_data, &a_data4, &a_string, &a_parse,
               &a_parse_lengths);
+            break;
+        case 'm':
+            m(f_data, f_string, f_parse, list);
             break;
         default:
             // príkaz nie je podporovaný
