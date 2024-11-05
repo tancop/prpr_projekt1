@@ -2,3 +2,4 @@ a.out
 node_modules
 tester/target
 *.exe
+.vscode
