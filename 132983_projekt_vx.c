@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define false (0)
 #define true (1)
@@ -407,6 +408,169 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node *list)
     rewind(f_data);
     rewind(f_string);
     rewind(f_parse);
+
+    if (list)
+    {
+        Node *node = list;
+        while (node->next != NULL)
+        {
+            node = node->next;
+            free(node->id);
+            free(node->parse.t);
+            free(node->parse.id);
+            free(node);
+        }
+        free(node->id);
+        free(node->parse.t);
+        free(node->parse.id);
+        free(node);
+    }
+
+    // dlzka zoznamu
+    int list_length = 0;
+    Node head;
+    Node *current;
+
+    /* riadok v string.txt má max 6 znakov + \r\n + \0 */
+    char id_string[9];
+
+    while (fgets(id_string, 8, f_string) != NULL)
+    {
+        char id[6] = {0};
+        if (id_string[0] != '\r' && id_string[0] != '\n')
+        {
+            for (int i = 0; i < 6; ++i)
+            {
+                id[i] = id_string[i];
+            }
+            /* posunieme indikátor na začiatok ďalšieho riadku */
+            fseek(f_string, 1, SEEK_CUR);
+        }
+
+        int h_id, h_zn, h1;
+        double h2;
+
+        /* zahodíme prvé dve čísla cez %* */
+        fscanf(f_data, "%d %d %d %lf", &h_id, &h_zn, &h1, &h2);
+
+        int c;
+
+        // max dlzka riadku v parse.txt
+        char buf[500];
+        int buf_length;
+
+        // 6 znakov ID
+        char p_id[6] = {0};
+        double p_n1;
+        int timestamp;
+
+        int part = 0;
+        int last_index = 0;
+
+        fgets(buf, 500, f_parse);
+
+        for (int i = 0; i < 500; ++i)
+        {
+            c = buf[i];
+            if (c == '#')
+            {
+                // oddelovac #
+                switch (part)
+                {
+                case 0:
+                    // retazec ID
+                    if (i - last_index > 1)
+                    {
+                        // mame ID segment
+                        printf("[id] i: %d, last_index: %d\n", i, last_index);
+                    }
+                    break;
+                case 1:
+                    // N1
+                    if (i - last_index > 1)
+                    {
+                        printf("[n1] i: %d, last_index: %d\n", i, last_index);
+                    }
+                    break;
+                case 2:
+                    // timestamp
+                    if (i - last_index > 1)
+                    {
+                        printf("[ts] i: %d, last_index: %d\n", i, last_index);
+                    }
+                    break;
+                case 3:
+                    // poznamka
+                    if (i - last_index > 1)
+                    {
+                        printf("[str] i: %d, last_index: %d\n", i, last_index);
+                    }
+                    break;
+                }
+                ++part;
+                last_index = i;
+            }
+            else if (c == '\n' || c == '\r')
+            {
+                // koniec riadku
+                break;
+            }
+        }
+
+        // printf("%6s, %lf, %d", p_id, p_n1, timestamp);
+
+        /*buf_length = strlen(buf);
+        char *p_t = (char *)malloc(buf_length * sizeof(char));
+        for (int i = 0; i < buf_length; ++i)
+        {
+            p_t[i] = buf[i];
+        }
+
+        // celociselne delenie na prve 2 cislice
+        int p_hod = timestamp / 100;
+        // modulo na posledne 2
+        int p_min = timestamp % 100;
+
+        DataRecord data = {h_id, h_zn, h1, h2};
+        ParseRecord parse = {
+            {p_id[0], p_id[1], p_id[2], p_id[3], p_id[4], p_id[5]},
+            p_n1,
+            p_hod,
+            p_min,
+            p_t,
+            buf_length};
+
+        Node *node = (Node *)malloc(sizeof(Node));
+
+        for (int i = 0; i < 6; ++i)
+        {
+            node->id[i] = id[i];
+        }
+        node->data = data;
+        node->parse = parse;
+
+        if (list_length == 0)
+        {
+            // uplny zaciatok
+            head = *node;
+        }
+        else if (list_length == 1)
+        {
+            // je naplneny head ale nie current
+            node->prev = &head;
+            current = node;
+            head.next = node;
+        }
+        else
+        {
+            node->prev = current;
+            current->next = node;
+            current = node;
+            }*/
+    }
+
+    *list = head;
+    fflush(stdout);
 }
 
 void e(int rec_count, char **a_parse, int *a_parse_lengths)
