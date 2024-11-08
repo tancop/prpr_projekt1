@@ -482,7 +482,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         int h_id, h_zn, h1;
         double h2;
 
-        /* zahodíme prvé dve čísla cez %* */
         fscanf(f_data, "%d %d %d %lf", &h_id, &h_zn, &h1, &h2);
 
         int c;
@@ -522,8 +521,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
                         {
                             p_id[j] = buf[j];
                         }
-                        printf("[id] i: %d, last_index: %d, id: %6s\n", i,
-                               last_index, p_id);
                     }
                     break;
                 case 1:
@@ -531,8 +528,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
                     if (i - last_index > 1)
                     {
                         sscanf(buf + last_index + 1, "%lf", &p_n1);
-                        printf("[n1] i: %d, last_index: %d, p_n1: %g\n", i,
-                               last_index, p_n1);
                     }
                     break;
                 case 2:
@@ -540,8 +535,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
                     if (i - last_index > 1)
                     {
                         sscanf(buf + last_index + 1, "%d", &timestamp);
-                        printf("[ts] i: %d, last_index: %d, timestamp: %d\n", i,
-                               last_index, timestamp);
                     }
                     break;
                 case 3:
@@ -555,9 +548,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
                             p_t[j] = buf[j + last_index + 1];
                         }
                         p_t[buf_length - 1] = '\0';
-                        printf("[str] i: %d, last_index: %d, p_t: %s, "
-                               "t_length: %d, buf_length: %d\n",
-                               i, last_index, p_t, t_length, buf_length);
                     }
                     break;
                 }
@@ -576,8 +566,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         int p_hod = timestamp / 100;
         // modulo na posledne 2
         int p_min = timestamp % 100;
-
-        printf("cas: %d:%d\n", p_hod, p_min);
 
         DataRecord data = {h_id, h_zn, h1, h2};
         ParseRecord parse = {
