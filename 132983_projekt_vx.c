@@ -428,7 +428,7 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
 
     // dlzka zoznamu
     int list_length = 0;
-    Node head;
+    Node *head;
     Node *current;
 
     /* riadok v string.txt má max 6 znakov + \r\n + \0 */
@@ -564,18 +564,20 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         }
         node->data = data;
         node->parse = parse;
+        node->next = NULL;
 
         if (list_length == 0)
         {
             // uplny zaciatok
-            head = *node;
+            node->prev = NULL;
+            head = node;
         }
         else if (list_length == 1)
         {
             // je naplneny head ale nie current
-            node->prev = &head;
+            node->prev = head;
             current = node;
-            head.next = node;
+            head->next = node;
         }
         else
         {
@@ -583,9 +585,11 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
             current->next = node;
             current = node;
         }
+
+        ++list_length;
     }
 
-    *list = &head;
+    *list = head;
     fflush(stdout);
 }
 
@@ -920,5 +924,18 @@ int main(void)
         free(a_parse_lengths);
     }
 
+    // uvolnime spajany zoznam
+    if (list)
+    {
+        Node *next_node;
+
+        while (list)
+        {
+            next_node = list->next;
+            free(list->parse.t);
+            free(list);
+            list = next_node;
+        }
+    }
     return 0;
 }
