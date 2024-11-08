@@ -443,19 +443,15 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
 
     if (*list)
     {
-        Node *node = *list;
-        while (node->next != NULL)
+        Node *head = *list;
+        Node *next_node;
+        while (head)
         {
-            node = node->next;
-            free(node->id);
-            free(node->parse.t);
-            free(node->parse.id);
-            free(node);
+            next_node = head->next;
+            free(head->parse.t);
+            free(head);
+            head = next_node;
         }
-        free(node->id);
-        free(node->parse.t);
-        free(node->parse.id);
-        free(node);
     }
 
     // dlzka zoznamu
@@ -547,7 +543,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
                         {
                             p_t[j] = buf[j + last_index + 1];
                         }
-                        p_t[buf_length - 1] = '\0';
                     }
                     break;
                 }
