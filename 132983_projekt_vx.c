@@ -15,7 +15,8 @@ typedef struct DataRecord
 typedef struct ParseRecord
 {
     char id[6];
-    int n1, hodina, minuta;
+    int hodina, minuta;
+    double n1;
     char *t;
     // dlzka retazca t
     int t_length;
@@ -154,6 +155,25 @@ void v3(Node *list)
     {
         printf("V3: Nenaplnený spajany zoznam.\n");
         return;
+    }
+
+    Node *node = list;
+
+    while (node)
+    {
+        printf("ID. mer. modulu: %6s\n", node->id);
+        printf("Hodnota 1: %d\n", node->data.h1);
+        printf("Hodnota 2: %g\n", node->data.h2);
+        printf("Poznámka ID: %6s\n", node->parse.id);
+        printf("Poznámka C: %d : %d => %g\n", node->parse.hodina,
+               node->parse.minuta, node->parse.n1);
+        printf("Poznámka T: ");
+        for (int i = 0; i < node->parse.t_length; ++i)
+        {
+            putchar(node->parse.t[i]);
+        }
+        printf("\n\n");
+        node = node->next;
     }
 }
 
@@ -528,16 +548,16 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
                     // poznamka
                     if (i - last_index > 1)
                     {
-                        p_t = (char *)malloc(buf_length * sizeof(char));
-                        for (int i = last_index + 1; i < buf_length; ++i)
+                        t_length = i - last_index - 1;
+                        p_t = (char *)malloc(t_length * sizeof(char));
+                        for (int j = 0; j < t_length; ++j)
                         {
-                            p_t[i - 1] = buf[i];
+                            p_t[j] = buf[j + last_index + 1];
                         }
                         p_t[buf_length - 1] = '\0';
-                        t_length = i - last_index;
                         printf("[str] i: %d, last_index: %d, p_t: %s, "
-                               "t_length: %d\n",
-                               i, last_index, p_t, t_length);
+                               "t_length: %d, buf_length: %d\n",
+                               i, last_index, p_t, t_length, buf_length);
                     }
                     break;
                 }
@@ -562,11 +582,11 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         DataRecord data = {h_id, h_zn, h1, h2};
         ParseRecord parse = {
             {p_id[0], p_id[1], p_id[2], p_id[3], p_id[4], p_id[5]},
-            p_n1,
             p_hod,
             p_min,
+            p_n1,
             p_t,
-            buf_length};
+            t_length};
 
         Node *node = (Node *)malloc(sizeof(Node));
 
