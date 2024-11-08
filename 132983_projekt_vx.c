@@ -148,9 +148,18 @@ void v2(int rec_count, int *a_data, double *a_data4, char *a_string,
     fflush(stdout);
 }
 
+void v3(Node *list)
+{
+    if (!list)
+    {
+        printf("V3: Nenaplnený spajany zoznam.\n");
+        return;
+    }
+}
+
 void v(FILE **f_data, FILE **f_string, FILE **f_parse, int rec_count,
        int *a_data, double *a_data4, char *a_string, char **a_parse,
-       int *a_parse_lengths)
+       int *a_parse_lengths, Node *list)
 {
     char subcmd;
 
@@ -163,6 +172,9 @@ void v(FILE **f_data, FILE **f_string, FILE **f_parse, int rec_count,
         break;
     case '2':
         v2(rec_count, a_data, a_data4, a_string, a_parse, a_parse_lengths);
+        break;
+    case '3':
+        v3(list);
         break;
     default:
         printf("V: Nesprávne volba vypisu.\n");
@@ -865,7 +877,7 @@ int main(void)
         {
         case 'v':
             v(&f_data, &f_string, &f_parse, rec_count, a_data, a_data4,
-              a_string, a_parse, a_parse_lengths);
+              a_string, a_parse, a_parse_lengths, list);
             break;
         case 'h':
             h(f_string);
