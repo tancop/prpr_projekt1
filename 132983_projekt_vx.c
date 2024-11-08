@@ -605,6 +605,8 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
     }
 
     *list = head;
+
+    printf("M: Nacitalo sa %d zaznamov.\n", list_length);
     fflush(stdout);
 }
 
