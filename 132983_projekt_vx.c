@@ -27,7 +27,6 @@ typedef struct Node
     char id[6];
     DataRecord data;
     ParseRecord parse;
-    struct Node *prev;
     struct Node *next;
 } Node;
 
@@ -584,19 +583,16 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         if (list_length == 0)
         {
             // uplny zaciatok
-            node->prev = NULL;
             head = node;
         }
         else if (list_length == 1)
         {
             // je naplneny head ale nie current
-            node->prev = head;
             current = node;
             head->next = node;
         }
         else
         {
-            node->prev = current;
             current->next = node;
             current = node;
         }
