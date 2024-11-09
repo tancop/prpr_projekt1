@@ -1017,6 +1017,67 @@ void s(Node *list)
     printf("S: Vymazalo sa : %d zaznamov !\n", deleted);
 }
 
+void d(Node *list)
+{
+    if (!list)
+        // zoznam neexistuje
+        return;
+
+    int c1, c2;
+
+    scanf("%d %d", &c1, &c2);
+
+    if (c1 > c2)
+    {
+        // vymenime pozicie
+        int tmp = c1;
+        c1 = c2;
+        c2 = tmp;
+    }
+
+    Node *prev1, *n1, *next1, *prev2, *n2, *next2;
+
+    Node *prev = NULL;
+    Node *node = list;
+    int i = 1;
+
+    while (node)
+    {
+        if (i == c1)
+        {
+            // sme na pozicii c1
+            prev1 = prev;
+            n1 = node;
+            next1 = node->next;
+        }
+        else if (i == c2)
+        {
+            prev2 = prev;
+            n2 = node;
+            next2 = node->next;
+            // c1 <= c2, ked sme nasli n2 mame aj n1
+            break;
+        }
+        ++i;
+        prev = node;
+        node = node->next;
+    }
+
+    if (!n1 || !n2)
+        // v zozname neexistuju obe pozicie
+        return;
+
+    // prehodime odkazy v predchadzajucom zazname
+    if (prev1)
+        prev1->next = n2;
+    if (prev2)
+        prev2->next = n1;
+
+    // prehodime odkazy na nasledujuci zaznam
+    n1->next = next2;
+    n2->next = next1;
+}
+
 int main(void)
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
@@ -1069,6 +1130,9 @@ int main(void)
             break;
         case 's':
             s(list);
+            break;
+        case 'd':
+            d(list);
             break;
         default:
             // príkaz nie je podporovaný
