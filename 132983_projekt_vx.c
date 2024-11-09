@@ -160,8 +160,12 @@ void v3(Node *list)
 
     while (node)
     {
-        printf("ID. mer. modulu: %6s\n", node->id);
-        printf("Hodnota 1: %d\n", node->data.h1);
+        printf("ID. mer. modulu: ");
+        for (int i = 0; i < 6; ++i)
+        {
+            putchar(node->id[i]);
+        }
+        printf("\nHodnota 1: %d\n", node->data.h1);
         printf("Hodnota 2: %g\n", node->data.h2);
         printf("Poznámka ID: %6s\n", node->parse.id);
         printf("Poznámka C: %d : %d => %g\n", node->parse.hodina,
