@@ -74,7 +74,7 @@ void v1(FILE **f_data, FILE **f_string, FILE **f_parse)
         if (id_string[0] == '\r' || id_string[0] == '\n')
         {
             /* prázdny riadok v string.txt */
-            printf("ID. mer. modulu:\n");
+            printf("ID. mer. modulu: -\n");
         }
         else
         {
@@ -129,6 +129,10 @@ void v2(int rec_count, int *a_data, double *a_data4, char *a_string,
                 putchar(a_string[i * 6 + j]);
             }
         }
+        else
+        {
+            putchar('-');
+        }
         printf("\n");
 
         // tretie cislo z riadku
@@ -161,9 +165,16 @@ void v3(Node *list)
     while (node)
     {
         printf("ID. mer. modulu: ");
-        for (int i = 0; i < 6; ++i)
+        if (node->id[0])
         {
-            putchar(node->id[i]);
+            for (int i = 0; i < 6; ++i)
+            {
+                putchar(node->id[i]);
+            }
+        }
+        else
+        {
+            putchar('-');
         }
         printf("\nHodnota 1: %d\n", node->data.h1);
         printf("Hodnota 2: %g\n", node->data.h2);
@@ -438,9 +449,9 @@ ParseRecord parse_line(char buf[500])
     int buf_length = 0;
 
     // 6 znakov ID + \0
-    char p_id[7] = {0};
-    double p_n1 = 0;
-    int timestamp = 0;
+    char p_id[7] = "NaN   \0";
+    double p_n1 = -1;
+    int timestamp = -1;
 
     // retazec na konci poznamky
     char *p_t = NULL;
@@ -497,6 +508,16 @@ ParseRecord parse_line(char buf[500])
                         p_t[j] = buf[j + last_index + 1];
                     }
                 }
+                else
+                {
+                    const char *nan_string = "NaN\0";
+                    p_t = (char *)malloc(4 * sizeof(char));
+                    for (int i = 0; i < 5; ++i)
+                    {
+                        p_t[i] = nan_string[i];
+                    }
+                    t_length = 4;
+                }
                 break;
             }
             ++part;
@@ -511,9 +532,9 @@ ParseRecord parse_line(char buf[500])
     }
 
     // celociselne delenie na prve 2 cislice
-    int p_hod = timestamp / 100;
+    int p_hod = timestamp == -1 ? -1 : timestamp / 100;
     // modulo na posledne 2
-    int p_min = timestamp % 100;
+    int p_min = timestamp == -1 ? -1 : timestamp % 100;
 
     ParseRecord rec = {{p_id[0], p_id[1], p_id[2], p_id[3], p_id[4], p_id[5]},
                        p_hod,
