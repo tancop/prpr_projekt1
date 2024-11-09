@@ -928,6 +928,29 @@ void a(Node **list)
         *list = node;
         return;
     }
+
+    if (pos == 0)
+    {
+        // pridavame na zaciatok zoznamu
+        node->next = head;
+        *list = node;
+        return;
+    }
+
+    Node *tmp = head;
+    int i = 0;
+    while (i < pos)
+    {
+        if (!tmp->next)
+            // dosli sme na koniec zoznamu
+            break;
+        tmp = tmp->next;
+        ++i;
+    }
+
+    Node *next = tmp->next;
+    node->next = next;
+    tmp->next = node;
 }
 
 int main(void)
