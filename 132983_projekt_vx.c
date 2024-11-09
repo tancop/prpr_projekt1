@@ -1017,9 +1017,11 @@ void s(Node *list)
     printf("S: Vymazalo sa : %d zaznamov !\n", deleted);
 }
 
-void d(Node *list)
+void d(Node **list)
 {
-    if (!list)
+    Node *head = *list;
+
+    if (!head)
         // zoznam neexistuje
         return;
 
@@ -1038,7 +1040,7 @@ void d(Node *list)
     Node *prev1, *n1, *next1, *prev2, *n2, *next2;
 
     Node *prev = NULL;
-    Node *node = list;
+    Node *node = head;
     int i = 1;
 
     while (node)
@@ -1076,6 +1078,12 @@ void d(Node *list)
     // prehodime odkazy na nasledujuci zaznam
     n1->next = next2;
     n2->next = next1;
+
+    if (c1 == 1)
+    {
+        // n2 je novy zaciatok zoznamu
+        *list = n2;
+    }
 }
 
 int main(void)
@@ -1132,7 +1140,7 @@ int main(void)
             s(list);
             break;
         case 'd':
-            d(list);
+            d(&list);
             break;
         default:
             // príkaz nie je podporovaný
