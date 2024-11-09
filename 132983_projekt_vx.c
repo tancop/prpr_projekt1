@@ -965,12 +965,17 @@ void s(Node *list)
         return;
     }
 
+    // hladane ID zaznamu
     char id[7];
 
     scanf("%6s", id);
 
+    // predchadzajuci zaznam
     Node *prev = NULL;
     Node *node = list;
+
+    // pocet vymazanych zaznamov
+    int deleted = 0;
 
     while (node)
     {
@@ -986,6 +991,8 @@ void s(Node *list)
                 prev->next = NULL;
                 free(node->parse.t);
                 free(node);
+
+                printf("S: Vymazalo sa : %d zaznamov !\n", deleted + 1);
                 return;
             }
 
@@ -997,6 +1004,8 @@ void s(Node *list)
 
             prev = new_node;
             node = new_node->next;
+
+            ++deleted;
         }
         else
         {
@@ -1004,6 +1013,8 @@ void s(Node *list)
             node = node->next;
         }
     }
+
+    printf("S: Vymazalo sa : %d zaznamov !\n", deleted);
 }
 
 int main(void)
