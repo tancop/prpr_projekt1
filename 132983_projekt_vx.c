@@ -428,6 +428,99 @@ void n(FILE *f_data, FILE *f_string, FILE *f_parse, int *rec_count,
     fflush(stdout);
 }
 
+ParseRecord parse_line(char buf[500])
+{
+    // dlzka riadku
+    int buf_length = 0;
+
+    // 6 znakov ID + \0
+    char p_id[7] = {0};
+    double p_n1 = 0;
+    int timestamp = 0;
+
+    // retazec na konci poznamky
+    char *p_t = NULL;
+    int t_length = 0;
+
+    // cast riadku oddelena #
+    int part = 0;
+    // index posledneho #
+    int last_index = 0;
+
+    char c;
+
+    for (int i = 0; i < 500; ++i)
+    {
+        c = buf[i];
+        if (c == '#')
+        {
+            // oddelovac #
+            switch (part)
+            {
+            case 0:
+                // retazec ID
+                if (i - last_index > 1)
+                {
+                    // mame ID segment
+                    for (int j = 0; j < i; ++j)
+                    {
+                        p_id[j] = buf[j];
+                    }
+                }
+                break;
+            case 1:
+                // N1
+                if (i - last_index > 1)
+                {
+                    sscanf(buf + last_index + 1, "%lf", &p_n1);
+                }
+                break;
+            case 2:
+                // timestamp
+                if (i - last_index > 1)
+                {
+                    sscanf(buf + last_index + 1, "%d", &timestamp);
+                }
+                break;
+            case 3:
+                // poznamka
+                if (i - last_index > 1)
+                {
+                    t_length = i - last_index - 1;
+                    p_t = (char *)malloc(t_length * sizeof(char));
+                    for (int j = 0; j < t_length; ++j)
+                    {
+                        p_t[j] = buf[j + last_index + 1];
+                    }
+                }
+                break;
+            }
+            ++part;
+            last_index = i;
+        }
+        else if (c == '\n' || c == '\r')
+        {
+            // koniec riadku
+            break;
+        }
+        ++buf_length;
+    }
+
+    // celociselne delenie na prve 2 cislice
+    int p_hod = timestamp / 100;
+    // modulo na posledne 2
+    int p_min = timestamp % 100;
+
+    ParseRecord rec = {{p_id[0], p_id[1], p_id[2], p_id[3], p_id[4], p_id[5]},
+                       p_hod,
+                       p_min,
+                       p_n1,
+                       p_t,
+                       t_length};
+
+    return rec;
+}
+
 void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
 {
     if (!f_data || !f_string || !f_parse)
@@ -499,62 +592,7 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
 
         fgets(buf, 500, f_parse);
 
-        for (int i = 0; i < 500; ++i)
-        {
-            c = buf[i];
-            if (c == '#')
-            {
-                // oddelovac #
-                switch (part)
-                {
-                case 0:
-                    // retazec ID
-                    if (i - last_index > 1)
-                    {
-                        // mame ID segment
-                        for (int j = 0; j < i; ++j)
-                        {
-                            p_id[j] = buf[j];
-                        }
-                    }
-                    break;
-                case 1:
-                    // N1
-                    if (i - last_index > 1)
-                    {
-                        sscanf(buf + last_index + 1, "%lf", &p_n1);
-                    }
-                    break;
-                case 2:
-                    // timestamp
-                    if (i - last_index > 1)
-                    {
-                        sscanf(buf + last_index + 1, "%d", &timestamp);
-                    }
-                    break;
-                case 3:
-                    // poznamka
-                    if (i - last_index > 1)
-                    {
-                        t_length = i - last_index - 1;
-                        p_t = (char *)malloc(t_length * sizeof(char));
-                        for (int j = 0; j < t_length; ++j)
-                        {
-                            p_t[j] = buf[j + last_index + 1];
-                        }
-                    }
-                    break;
-                }
-                ++part;
-                last_index = i;
-            }
-            else if (c == '\n' || c == '\r')
-            {
-                // koniec riadku
-                break;
-            }
-            ++buf_length;
-        }
+        ParseRecord parse = parse_line(buf);
 
         // celociselne delenie na prve 2 cislice
         int p_hod = timestamp / 100;
@@ -562,13 +600,6 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         int p_min = timestamp % 100;
 
         DataRecord data = {h_id, h_zn, h1, h2};
-        ParseRecord parse = {
-            {p_id[0], p_id[1], p_id[2], p_id[3], p_id[4], p_id[5]},
-            p_hod,
-            p_min,
-            p_n1,
-            p_t,
-            t_length};
 
         Node *node = (Node *)malloc(sizeof(Node));
 
@@ -854,6 +885,51 @@ void q(int *rec_count, int **a_data, double **a_data4, char **a_string,
     fflush(stdout);
 }
 
+void a(Node **list)
+{
+    int pos;
+    scanf("%d", &pos);
+
+    // prevedieme na 0 based index
+    pos = pos - 1;
+
+    Node *node = (Node *)malloc(sizeof(Node));
+    char id[7];
+
+    scanf("%6s", id);
+
+    int h_id, h_zn, h1;
+    double h2;
+
+    scanf("%d %d %d %lf", &h_id, &h_zn, &h1, &h2);
+
+    getchar();
+    char buf[500];
+
+    fgets(buf, 500, stdin);
+
+    ParseRecord parse = parse_line(buf);
+
+    DataRecord data = {h_id, h_zn, h1, h2};
+
+    for (int i = 0; i < 6; ++i)
+    {
+        node->id[i] = id[i];
+    }
+    node->data = data;
+    node->parse = parse;
+    node->next = NULL;
+
+    Node *head = *list;
+
+    if (!head)
+    {
+        // zoznam nie je vytvoreny
+        *list = node;
+        return;
+    }
+}
+
 int main(void)
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
@@ -900,6 +976,9 @@ int main(void)
             break;
         case 'm':
             m(f_data, f_string, f_parse, &list);
+            break;
+        case 'a':
+            a(&list);
             break;
         default:
             // príkaz nie je podporovaný
