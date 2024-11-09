@@ -953,6 +953,55 @@ void a(Node **list)
     tmp->next = node;
 }
 
+void s(Node *list)
+{
+    if (!list)
+    {
+        printf("S: Spajany zoznam nie je vytvorený.\n");
+        return;
+    }
+
+    char id[7];
+
+    scanf("%6s", id);
+
+    Node *prev = NULL;
+    Node *node = list;
+
+    while (node)
+    {
+        if (strncmp(id, node->id, 6) == 0)
+        {
+            // nasli sme hladane id
+
+            Node *new_node = node->next;
+
+            if (!new_node)
+            {
+                // sme na konci zoznamu
+                prev->next = NULL;
+                free(node->parse.t);
+                free(node);
+                return;
+            }
+
+            // preskocime node v zozname
+            prev->next = new_node;
+
+            free(node->parse.t);
+            free(node);
+
+            prev = new_node;
+            node = new_node->next;
+        }
+        else
+        {
+            prev = node;
+            node = node->next;
+        }
+    }
+}
+
 int main(void)
 {
     FILE *f_data = NULL, *f_string = NULL, *f_parse = NULL;
@@ -1002,6 +1051,9 @@ int main(void)
             break;
         case 'a':
             a(&list);
+            break;
+        case 's':
+            s(list);
             break;
         default:
             // príkaz nie je podporovaný
