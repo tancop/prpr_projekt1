@@ -71,17 +71,25 @@ void v1(FILE **f_data, FILE **f_string, FILE **f_parse)
 
     while (fgets(id_string, 8, *f_string) != NULL)
     {
-        if (id_string[0] == '\r' || id_string[0] == '\n')
+        printf("ID. mer. modulu: ");
+
+        int ended_early = false;
+        for (int i = 0; i < 6; ++i)
         {
-            /* prázdny riadok v string.txt */
-            printf("ID. mer. modulu: -\n");
+            if (id_string[i] == '\r' || id_string[i] == '\n')
+            {
+                // riadok sa skoncil a ma menej ako 6 znakov
+                ended_early = true;
+                break;
+            }
+
+            putchar(id_string[i]);
         }
-        else
-        {
-            printf("ID. mer. modulu: %6s\n", id_string);
-            /* posunieme indikátor na začiatok ďalšieho riadku */
+        putchar('\n');
+
+        if (!ended_early)
+            // posunieme na zaciatok dalsieho riadku
             fseek(*f_string, 1, SEEK_CUR);
-        }
 
         int h1;
         double h2;
@@ -126,6 +134,9 @@ void v2(int rec_count, int *a_data, double *a_data4, char *a_string,
             // riadok nie je prazdny
             for (int j = 0; j < 6; ++j)
             {
+                if (a_string[i * 6 + j] == '\0')
+                    // dosli sme na koniec retazca
+                    break;
                 putchar(a_string[i * 6 + j]);
             }
         }
@@ -359,9 +370,10 @@ void n(FILE *f_data, FILE *f_string, FILE *f_parse, int *rec_count,
     {
         if (c == '\n' || c == '\r')
         {
-            if (offset == 0)
-                // riadok ma dlzku 0
-                (*a_string)[base * 6] = '\n';
+            if (offset < 5)
+                // nastavime koniec retazca
+                (*a_string)[base * 6 + offset] = '\0';
+
             // posunieme na dalsi char[6]
             ++base;
             offset = 0;
@@ -784,13 +796,16 @@ void w(int *rec_count, int **a_data, double **a_data4, char **a_string,
         }
     }
 
+    deleted_pos = 0;
+
     // posun cez ktory berieme nove prvky
-    int offset = 1;
+    int offset = 0;
     // zacneme od prveho vymazaneho zaznamu a kopirujeme prvky dozadu
-    for (int i = deleted[0]; i < (*rec_count - deleted_count); ++i)
+    for (int i = 0; i < (*rec_count - deleted_count); ++i)
     {
-        if (i == deleted[deleted_pos])
+        if (i + offset == deleted[deleted_pos])
         {
+            ++deleted_pos;
             ++offset;
         }
 
