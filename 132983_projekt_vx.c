@@ -180,6 +180,8 @@ void v3(Node *list)
         {
             for (int i = 0; i < 6; ++i)
             {
+                if (!node->id[i])
+                    break;
                 putchar(node->id[i]);
             }
         }
@@ -596,12 +598,17 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         char id[6] = {0};
         if (id_string[0] != '\r' && id_string[0] != '\n')
         {
-            for (int i = 0; i < 6; ++i)
+            int i;
+            for (i = 0; i < 6; ++i)
             {
+                if (!id_string[i] || id_string[i] == '\n' ||
+                    id_string[i] == '\r')
+                    break;
                 id[i] = id_string[i];
             }
             /* posunieme indikátor na začiatok ďalšieho riadku */
-            fseek(f_string, 1, SEEK_CUR);
+            if (i < 6)
+                fseek(f_string, 1, SEEK_CUR);
         }
 
         int h_id, h_zn, h1;
@@ -993,9 +1000,10 @@ void a(Node **list)
     tmp->next = node;
 }
 
-void s(Node *list)
+void s(Node **list)
 {
-    if (!list)
+    Node *head = *list;
+    if (!head)
     {
         printf("S: Spajany zoznam nie je vytvorený.\n");
         return;
@@ -1008,10 +1016,12 @@ void s(Node *list)
 
     // predchadzajuci zaznam
     Node *prev = NULL;
-    Node *node = list;
+    Node *node = head;
 
     // pocet vymazanych zaznamov
     int deleted = 0;
+
+    int i = 0;
 
     while (node)
     {
@@ -1033,10 +1043,16 @@ void s(Node *list)
             }
 
             // preskocime node v zozname
-            prev->next = new_node;
+            if (prev)
+                prev->next = new_node;
 
             free(node->parse.t);
             free(node);
+
+            if (i == 0)
+            {
+                *list = new_node;
+            }
 
             prev = new_node;
             node = new_node->next;
@@ -1048,6 +1064,7 @@ void s(Node *list)
             prev = node;
             node = node->next;
         }
+        ++i;
     }
 
     printf("S: Vymazalo sa : %d zaznamov !\n", deleted);
@@ -1173,7 +1190,7 @@ int main(void)
             a(&list);
             break;
         case 's':
-            s(list);
+            s(&list);
             break;
         case 'd':
             d(&list);
