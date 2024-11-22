@@ -87,10 +87,6 @@ void v1(FILE **f_data, FILE **f_string, FILE **f_parse)
         }
         putchar('\n');
 
-        if (!ended_early)
-            // posunieme na zaciatok dalsieho riadku
-            fseek(*f_string, 1, SEEK_CUR);
-
         int h1;
         double h2;
 
@@ -192,7 +188,7 @@ void v3(Node *list)
         printf("\nHodnota 1: %d\n", node->data.h1);
         printf("Hodnota 2: %g\n", node->data.h2);
         printf("Poznámka ID: %6s\n", node->parse.id);
-        printf("Poznámka C: %d : %d => %g\n", node->parse.hodina,
+        printf("Poznámka C: %d : %02d => %g\n", node->parse.hodina,
                node->parse.minuta, node->parse.n1);
         printf("Poznámka T: ");
         for (int i = 0; i < node->parse.t_length; ++i)
@@ -938,7 +934,8 @@ void a(Node **list)
     scanf("%d", &pos);
 
     // prevedieme na 0 based index
-    pos = pos - 1;
+    // vzdy pridavame pred existujuci node
+    pos = pos - 2;
 
     Node *node = (Node *)malloc(sizeof(Node));
     char id[7];
@@ -976,7 +973,7 @@ void a(Node **list)
         return;
     }
 
-    if (pos == 0)
+    if (pos == -1)
     {
         // pridavame na zaciatok zoznamu
         node->next = head;
@@ -1128,9 +1125,18 @@ void d(Node **list)
     if (prev2)
         prev2->next = n1;
 
-    // prehodime odkazy na nasledujuci zaznam
-    n1->next = next2;
-    n2->next = next1;
+    if (c2 - c1 == 1)
+    {
+        // n2 je hned za n1
+        n2->next = n1;
+        n1->next = next2;
+    }
+    else
+    {
+        // prehodime odkazy na nasledujuci zaznam
+        n1->next = next2;
+        n2->next = next1;
+    }
 
     if (c1 == 1)
     {
