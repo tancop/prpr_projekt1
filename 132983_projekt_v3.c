@@ -71,17 +71,21 @@ void v1(FILE **f_data, FILE **f_string, FILE **f_parse)
 
     while (fgets(id_string, 8, *f_string) != NULL)
     {
-        if (id_string[0] == '\r' || id_string[0] == '\n')
+        printf("ID. mer. modulu: ");
+
+        int ended_early = false;
+        for (int i = 0; i < 6; ++i)
         {
-            /* prázdny riadok v string.txt */
-            printf("ID. mer. modulu: -\n");
+            if (id_string[i] == '\r' || id_string[i] == '\n')
+            {
+                // riadok sa skoncil a ma menej ako 6 znakov
+                ended_early = true;
+                break;
+            }
+
+            putchar(id_string[i]);
         }
-        else
-        {
-            printf("ID. mer. modulu: %6s\n", id_string);
-            /* posunieme indikátor na začiatok ďalšieho riadku */
-            fseek(*f_string, 1, SEEK_CUR);
-        }
+        putchar('\n');
 
         int h1;
         double h2;
@@ -126,6 +130,9 @@ void v2(int rec_count, int *a_data, double *a_data4, char *a_string,
             // riadok nie je prazdny
             for (int j = 0; j < 6; ++j)
             {
+                if (a_string[i * 6 + j] == '\0')
+                    // dosli sme na koniec retazca
+                    break;
                 putchar(a_string[i * 6 + j]);
             }
         }
@@ -169,6 +176,8 @@ void v3(Node *list)
         {
             for (int i = 0; i < 6; ++i)
             {
+                if (!node->id[i])
+                    break;
                 putchar(node->id[i]);
             }
         }
@@ -179,7 +188,7 @@ void v3(Node *list)
         printf("\nHodnota 1: %d\n", node->data.h1);
         printf("Hodnota 2: %g\n", node->data.h2);
         printf("Poznámka ID: %6s\n", node->parse.id);
-        printf("Poznámka C: %d : %d => %g\n", node->parse.hodina,
+        printf("Poznámka C: %d : %02d => %g\n", node->parse.hodina,
                node->parse.minuta, node->parse.n1);
         printf("Poznámka T: ");
         for (int i = 0; i < node->parse.t_length; ++i)
@@ -359,9 +368,10 @@ void n(FILE *f_data, FILE *f_string, FILE *f_parse, int *rec_count,
     {
         if (c == '\n' || c == '\r')
         {
-            if (offset == 0)
-                // riadok ma dlzku 0
-                (*a_string)[base * 6] = '\n';
+            if (offset < 5)
+                // nastavime koniec retazca
+                (*a_string)[base * 6 + offset] = '\0';
+
             // posunieme na dalsi char[6]
             ++base;
             offset = 0;
@@ -584,12 +594,17 @@ void m(FILE *f_data, FILE *f_string, FILE *f_parse, Node **list)
         char id[6] = {0};
         if (id_string[0] != '\r' && id_string[0] != '\n')
         {
-            for (int i = 0; i < 6; ++i)
+            int i;
+            for (i = 0; i < 6; ++i)
             {
+                if (!id_string[i] || id_string[i] == '\n' ||
+                    id_string[i] == '\r')
+                    break;
                 id[i] = id_string[i];
             }
             /* posunieme indikátor na začiatok ďalšieho riadku */
-            fseek(f_string, 1, SEEK_CUR);
+            if (i < 6)
+                fseek(f_string, 1, SEEK_CUR);
         }
 
         int h_id, h_zn, h1;
@@ -784,13 +799,16 @@ void w(int *rec_count, int **a_data, double **a_data4, char **a_string,
         }
     }
 
+    deleted_pos = 0;
+
     // posun cez ktory berieme nove prvky
-    int offset = 1;
+    int offset = 0;
     // zacneme od prveho vymazaneho zaznamu a kopirujeme prvky dozadu
-    for (int i = deleted[0]; i < (*rec_count - deleted_count); ++i)
+    for (int i = 0; i < (*rec_count - deleted_count); ++i)
     {
-        if (i == deleted[deleted_pos])
+        if (i + offset == deleted[deleted_pos])
         {
+            ++deleted_pos;
             ++offset;
         }
 
@@ -916,7 +934,8 @@ void a(Node **list)
     scanf("%d", &pos);
 
     // prevedieme na 0 based index
-    pos = pos - 1;
+    // vzdy pridavame pred existujuci node
+    pos = pos - 2;
 
     Node *node = (Node *)malloc(sizeof(Node));
     char id[7];
@@ -954,7 +973,7 @@ void a(Node **list)
         return;
     }
 
-    if (pos == 0)
+    if (pos == -1)
     {
         // pridavame na zaciatok zoznamu
         node->next = head;
@@ -978,9 +997,10 @@ void a(Node **list)
     tmp->next = node;
 }
 
-void s(Node *list)
+void s(Node **list)
 {
-    if (!list)
+    Node *head = *list;
+    if (!head)
     {
         printf("S: Spajany zoznam nie je vytvorený.\n");
         return;
@@ -993,10 +1013,12 @@ void s(Node *list)
 
     // predchadzajuci zaznam
     Node *prev = NULL;
-    Node *node = list;
+    Node *node = head;
 
     // pocet vymazanych zaznamov
     int deleted = 0;
+
+    int i = 0;
 
     while (node)
     {
@@ -1018,10 +1040,16 @@ void s(Node *list)
             }
 
             // preskocime node v zozname
-            prev->next = new_node;
+            if (prev)
+                prev->next = new_node;
 
             free(node->parse.t);
             free(node);
+
+            if (i == 0)
+            {
+                *list = new_node;
+            }
 
             prev = new_node;
             node = new_node->next;
@@ -1033,6 +1061,7 @@ void s(Node *list)
             prev = node;
             node = node->next;
         }
+        ++i;
     }
 
     printf("S: Vymazalo sa : %d zaznamov !\n", deleted);
@@ -1096,9 +1125,18 @@ void d(Node **list)
     if (prev2)
         prev2->next = n1;
 
-    // prehodime odkazy na nasledujuci zaznam
-    n1->next = next2;
-    n2->next = next1;
+    if (c2 - c1 == 1)
+    {
+        // n2 je hned za n1
+        n2->next = n1;
+        n1->next = next2;
+    }
+    else
+    {
+        // prehodime odkazy na nasledujuci zaznam
+        n1->next = next2;
+        n2->next = next1;
+    }
 
     if (c1 == 1)
     {
@@ -1158,7 +1196,7 @@ int main(void)
             a(&list);
             break;
         case 's':
-            s(list);
+            s(&list);
             break;
         case 'd':
             d(&list);
