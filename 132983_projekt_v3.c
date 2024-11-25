@@ -522,7 +522,7 @@ ParseRecord parse_line(char buf[500])
                 {
                     const char *nan_string = "NaN\0";
                     p_t = (char *)malloc(4 * sizeof(char));
-                    for (int i = 0; i < 5; ++i)
+                    for (int i = 0; i < 3; ++i)
                     {
                         p_t[i] = nan_string[i];
                     }
