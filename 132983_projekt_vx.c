@@ -1201,11 +1201,11 @@ int main(void)
         case 'd':
             d(&list);
             break;
-        default:
-            // príkaz nie je podporovaný
+        case 'k':
             should_end = true;
             break;
         }
+        // inak prepadneme do dalsieho cyklu
     } while (!should_end);
 
     // zatvoríme všetky súbory ak sú otvorené
